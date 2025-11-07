@@ -205,7 +205,7 @@ export const StorageTab: React.FC = () => {
       setEditingRow(null);
     } catch (err) {
       console.error("Failed to update row:", err);
-      setError("更新行失败");
+      setError("Failed to update row");
     } finally {
       setLoading(false);
     }
@@ -225,7 +225,7 @@ export const StorageTab: React.FC = () => {
       setDeletingRow(null);
     } catch (err) {
       console.error("Failed to delete row:", err);
-      setError("删除行失败");
+      setError("Failed to delete row");
     } finally {
       setLoading(false);
     }
@@ -244,7 +244,7 @@ export const StorageTab: React.FC = () => {
       setNewRow(null);
     } catch (err) {
       console.error("Failed to insert row:", err);
-      setError("插入行失败");
+      setError("Failed to insert row");
     } finally {
       setLoading(false);
     }
@@ -406,7 +406,7 @@ export const StorageTab: React.FC = () => {
                 className="gap-2 h-8 text-xs"
               >
                 <Plus className="h-3 w-3" />
-                新增行
+                Add Row
               </Button>
             )}
           </div>
@@ -437,7 +437,7 @@ export const StorageTab: React.FC = () => {
                     </th>
                   ))}
                   <th className="px-3 py-2 text-right text-xs font-medium text-muted-foreground">
-                    操作
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -955,4 +955,4 @@ export const StorageTab: React.FC = () => {
       </ToastContainer>
     </div>
   );
-}; 
+};

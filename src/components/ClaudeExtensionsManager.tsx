@@ -53,12 +53,12 @@ interface SkillFile {
 }
 
 /**
- * Claude 扩展管理器
- * 
- * 根据官方文档管理：
- * - Subagents: .claude/agents/ 下的 Markdown 文件
- * - Agent Skills: .claude/skills/ 下的 SKILL.md 文件
- * - Slash Commands: 已有独立管理器
+ * Claude Extensions Manager
+ *
+ * According to the official docs, manages:
+ * - Subagents: Markdown files under .claude/agents/
+ * - Agent Skills: SKILL.md files under .claude/skills/
+ * - Slash Commands: Managed by a separate manager
  */
 export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = ({
   projectPath,
@@ -71,7 +71,7 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
   const [activeTab, setActiveTab] = useState("plugins");
   const [loading, setLoading] = useState(false);
 
-  // 加载插件
+  // Load plugins
   const loadPlugins = async () => {
     try {
       setLoading(true);
@@ -85,7 +85,7 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
     }
   };
 
-  // 加载子代理
+  // Load subagents
   const loadAgents = async () => {
     try {
       setLoading(true);
@@ -99,7 +99,7 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
     }
   };
 
-  // 加载 Agent Skills
+  // Load Agent Skills
   const loadSkills = async () => {
     try {
       setLoading(true);
@@ -113,7 +113,7 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
     }
   };
 
-  // 打开目录
+  // Open plugins directory
   const handleOpenPluginsDir = async () => {
     try {
       const dirPath = await api.openPluginsDirectory(projectPath);
@@ -149,7 +149,7 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
 
   return (
     <div className={cn("space-y-4", className)}>
-      {/* 返回按钮 */}
+      {/* Back button */}
       {onBack && (
         <div className="flex items-center gap-3 mb-4">
           <Button
@@ -159,11 +159,13 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            返回主页
+            Back to Home
           </Button>
           <div>
-            <h2 className="text-lg font-semibold">Claude 扩展管理器</h2>
-            <p className="text-sm text-muted-foreground">管理 Plugins、Subagents 和 Agent Skills</p>
+            <h2 className="text-lg font-semibold">Claude Extensions Manager</h2>
+            <p className="text-sm text-muted-foreground">
+              Manage Plugins, Subagents, and Agent Skills
+            </p>
           </div>
         </div>
       )}
@@ -190,12 +192,12 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
             <div>
               <h3 className="text-lg font-semibold">Plugins</h3>
               <p className="text-sm text-muted-foreground">
-                已安装的插件（可包含 commands、agents、skills、hooks、MCP servers）
+                Installed plugins (may contain commands, agents, skills, hooks, MCP servers)
               </p>
             </div>
           </div>
 
-          {/* 插件列表 */}
+          {/* Plugin list */}
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -215,7 +217,7 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
                           </Badge>
                           {plugin.enabled && (
                             <Badge variant="default" className="text-xs bg-green-600">
-                              已启用
+                              Enabled
                             </Badge>
                           )}
                         </div>
@@ -225,14 +227,14 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
                           </p>
                         )}
                         <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                          {plugin.components.commands > 0 && <span>📝 {plugin.components.commands} 命令</span>}
-                          {plugin.components.agents > 0 && <span>🤖 {plugin.components.agents} 代理</span>}
-                          {plugin.components.skills > 0 && <span>✨ {plugin.components.skills} 技能</span>}
-                          {plugin.components.hooks > 0 && <span>🪝 钩子</span>}
+                          {plugin.components.commands > 0 && <span>📝 {plugin.components.commands} commands</span>}
+                          {plugin.components.agents > 0 && <span>🤖 {plugin.components.agents} agents</span>}
+                          {plugin.components.skills > 0 && <span>✨ {plugin.components.skills} skills</span>}
+                          {plugin.components.hooks > 0 && <span>🪝 hooks</span>}
                           {plugin.components.mcpServers > 0 && <span>🔌 MCP</span>}
                         </div>
                         {plugin.author && (
-                          <p className="text-xs text-muted-foreground mt-1">作者: {plugin.author}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Author: {plugin.author}</p>
                         )}
                       </div>
                     </div>
@@ -250,16 +252,16 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
           ) : (
             <Card className="p-6 text-center border-dashed">
               <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h4 className="font-medium mb-2">暂无已安装的 Plugins</h4>
+              <h4 className="font-medium mb-2">No Plugins Installed</h4>
               <p className="text-sm text-muted-foreground mb-4">
-                Plugins 存储在 .claude/plugins/ 目录下
+                Plugins are stored in the .claude/plugins/ directory
               </p>
               <div className="text-xs text-muted-foreground mb-4">
-                使用 <code className="bg-muted px-1 py-0.5 rounded">/plugin</code> 命令管理插件
+                Use the <code className="bg-muted px-1 py-0.5 rounded">/plugin</code> command to manage plugins
               </div>
               <Button variant="outline" size="sm" onClick={handleOpenPluginsDir}>
                 <FolderOpen className="h-4 w-4 mr-2" />
-                打开目录
+                Open Directory
               </Button>
             </Card>
           )}
@@ -269,18 +271,18 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
         <TabsContent value="agents" className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold">子代理</h3>
+              <h3 className="text-lg font-semibold">Subagents</h3>
               <p className="text-sm text-muted-foreground">
-                存储在 <code className="text-xs bg-muted px-1 py-0.5 rounded">.claude/agents/</code> 的专用代理
+                Dedicated agents stored in <code className="text-xs bg-muted px-1 py-0.5 rounded">.claude/agents/</code>
               </p>
             </div>
             <Button size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              新建子代理
+              New Subagent
             </Button>
           </div>
 
-          {/* 子代理列表 */}
+          {/* Subagents list */}
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -317,7 +319,7 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
                 </Card>
               ))}
               
-              {/* 打开目录按钮 */}
+              {/* Open directory button */}
               <Button
                 variant="outline"
                 size="sm"
@@ -325,19 +327,19 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
                 onClick={handleOpenAgentsDir}
               >
                 <FolderOpen className="h-3.5 w-3.5 mr-2" />
-                打开子代理目录
+                Open Subagents Directory
               </Button>
             </div>
           ) : (
             <Card className="p-6 text-center border-dashed">
               <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h4 className="font-medium mb-2">暂无子代理</h4>
+              <h4 className="font-medium mb-2">No Subagents</h4>
               <p className="text-sm text-muted-foreground mb-4">
-                子代理存储在 .claude/agents/ 目录下
+                Subagents are stored in the .claude/agents/ directory
               </p>
               <Button variant="outline" size="sm" onClick={handleOpenAgentsDir}>
                 <FolderOpen className="h-4 w-4 mr-2" />
-                打开目录
+                Open Directory
               </Button>
             </Card>
           )}
@@ -349,16 +351,16 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
             <div>
               <h3 className="text-lg font-semibold">Agent Skills</h3>
               <p className="text-sm text-muted-foreground">
-                存储在 <code className="text-xs bg-muted px-1 py-0.5 rounded">.claude/skills/</code> 的专用技能
+                Dedicated skills stored in <code className="text-xs bg-muted px-1 py-0.5 rounded">.claude/skills/</code>
               </p>
             </div>
             <Button size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              新建 Skill
+              New Skill
             </Button>
           </div>
 
-          {/* Agent Skills 列表 */}
+          {/* Skills list */}
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -395,7 +397,7 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
                 </Card>
               ))}
               
-              {/* 打开目录按钮 */}
+              {/* Open directory button */}
               <Button
                 variant="outline"
                 size="sm"
@@ -403,50 +405,49 @@ export const ClaudeExtensionsManager: React.FC<ClaudeExtensionsManagerProps> = (
                 onClick={handleOpenSkillsDir}
               >
                 <FolderOpen className="h-3.5 w-3.5 mr-2" />
-                打开 Skills 目录
+                Open Skills Directory
               </Button>
             </div>
           ) : (
             <Card className="p-6 text-center border-dashed">
               <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h4 className="font-medium mb-2">暂无 Agent Skills</h4>
+              <h4 className="font-medium mb-2">No Agent Skills</h4>
               <p className="text-sm text-muted-foreground mb-4">
-                Agent Skills 存储在 .claude/skills/ 目录下（文件名格式：NAME.SKILL.md）
+                Agent Skills are stored in the .claude/skills/ directory (filename format: NAME.SKILL.md)
               </p>
               <Button variant="outline" size="sm" onClick={handleOpenSkillsDir}>
                 <FolderOpen className="h-4 w-4 mr-2" />
-                打开目录
+                Open Directory
               </Button>
             </Card>
           )}
         </TabsContent>
       </Tabs>
 
-      {/* 官方文档和资源链接 */}
+      {/* Documentation and resource links */}
       <div className="text-xs text-muted-foreground border-t pt-4 space-y-3">
         <div>
-          <p className="mb-2 font-medium">📚 官方文档：</p>
+          <p className="mb-2 font-medium">📚 Official Documentation:</p>
           <ul className="space-y-1 ml-4">
-            <li>• <a href="https://docs.claude.com/en/docs/claude-code/plugins" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Plugins 文档</a></li>
-            <li>• <a href="https://docs.claude.com/en/docs/claude-code/subagents" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Subagents 文档</a></li>
-            <li>• <a href="https://docs.claude.com/en/docs/claude-code/agent-skills" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Agent Skills 文档</a></li>
+            <li>• <a href="https://docs.claude.com/en/docs/claude-code/plugins" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Plugins Docs</a></li>
+            <li>• <a href="https://docs.claude.com/en/docs/claude-code/subagents" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Subagents Docs</a></li>
+            <li>• <a href="https://docs.claude.com/en/docs/claude-code/agent-skills" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Agent Skills Docs</a></li>
           </ul>
         </div>
         
         <div>
-          <p className="mb-2 font-medium">🎯 官方资源：</p>
+          <p className="mb-2 font-medium">🎯 Official Resources:</p>
           <ul className="space-y-1 ml-4">
             <li>• <a href="https://github.com/anthropics/skills" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
-              Anthropic Skills 仓库
+              Anthropic Skills Repository
               <span className="text-muted-foreground">(13.7k ⭐)</span>
             </a></li>
           </ul>
           <p className="text-muted-foreground mt-2 ml-4 text-[11px]">
-            包含官方示例 Skills：文档处理、创意设计、开发工具等
+            Includes official example Skills: document processing, creative design, development tools, etc.
           </p>
         </div>
       </div>
     </div>
   );
 };
-

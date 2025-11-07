@@ -1,16 +1,16 @@
 /**
- * 统一Token数据提取和显示工具
+ * Unified Token Extraction and Display Utility
  *
- * 解决Claude Workbench中token字段命名不一致的问题：
- * - 消息使用: cache_creation_tokens, cache_read_tokens
- * - 数据库使用: cache_write_tokens, cache_read_tokens
- * - API类型使用: cache_creation_tokens, cache_read_tokens
+ * Resolves inconsistent token field naming in Claude Workbench:
+ * - Message: cache_creation_tokens, cache_read_tokens
+ * - Database: cache_write_tokens, cache_read_tokens
+ * - API: cache_creation_tokens, cache_read_tokens
  *
- * 核心功能：
- * 1. 统一提取每条消息的实际token使用数据
- * 2. 智能字段映射和标准化
- * 3. 处理消息的双重usage字段 (message.usage 和 usage)
- * 4. 提供准确的四种token数据：输入、输出、缓存创建、缓存读取
+ * Core features:
+ * 1. Unified extraction of actual token usage per message
+ * 2. Intelligent field mapping and normalization
+ * 3. Handles dual usage fields in messages (message.usage and usage)
+ * 4. Provides accurate four token data: input, output, cache creation, cache read
  *
  * @author Claude Code Assistant
  * @version 1.0.0
@@ -20,7 +20,7 @@
 // 导入现有类型定义
 import type { ClaudeStreamMessage } from '@/types/claude';
 /**
- * 扩展消息类型以支持所有token字段变体
+ * Extended message type to support all token field variants
  */
 export interface ExtendedClaudeStreamMessage {
   type?: string;
@@ -33,31 +33,31 @@ export interface ExtendedClaudeStreamMessage {
 }
 
 /**
- * 标准化的Token使用数据接口
+ * Standardized token usage data interface
  */
 export interface StandardizedTokenUsage {
-  /** 输入token数量 */
+  /** Number of input tokens */
   input_tokens: number;
-  /** 输出token数量 */
+  /** Number of output tokens */
   output_tokens: number;
-  /** 缓存创建token数量 */
+  /** Number of cache creation tokens */
   cache_creation_tokens: number;
-  /** 缓存读取token数量 */
+  /** Number of cache read tokens */
   cache_read_tokens: number;
-  /** 总token数量 */
+  /** Total number of tokens */
   total_tokens: number;
 }
 
 /**
- * 原始Token使用数据接口（支持各种字段命名变体）
+ * Raw token usage data interface (supports various field name variants)
  *
- * 基于代码分析发现的字段变体：
+ * Field variants found via code analysis:
  * - cache_creation_input_tokens (ConversationMetrics.tsx)
  * - cache_read_input_tokens (ConversationMetrics.tsx)
- * - cache_creation_tokens (标准API)
- * - cache_write_tokens (数据库)
- * - cache_read_tokens (标准)
- * - cache_creation (JSONL中的对象格式)
+ * - cache_creation_tokens (standard API)
+ * - cache_write_tokens (database)
+ * - cache_read_tokens (standard)
+ * - cache_creation (object format in JSONL)
  */
 export interface RawTokenUsage {
   input_tokens?: number;
@@ -66,9 +66,9 @@ export interface RawTokenUsage {
   // 缓存创建token的各种命名方式
   cache_creation_tokens?: number;
   cache_write_tokens?: number;
-  cache_creation_input_tokens?: number; // 发现于ConversationMetrics
+  cache_creation_input_tokens?: number; // Found in ConversationMetrics
 
-  // cache_creation对象格式（JSONL中的格式）
+  // cache_creation object format (as in JSONL)
   cache_creation?: {
     ephemeral_5m_input_tokens?: number;
     ephemeral_1h_input_tokens?: number;
@@ -76,36 +76,36 @@ export interface RawTokenUsage {
 
   // 缓存读取token的各种命名方式
   cache_read_tokens?: number;
-  cache_read_input_tokens?: number; // 发现于ConversationMetrics
+  cache_read_input_tokens?: number; // Found in ConversationMetrics
 
-  // 总token数量的不同命名方式
+  // Different naming for total token count
   total_tokens?: number;
   tokens?: number;
 }
 
 /**
- * 消息显示选项
+ * Message display options
  */
 export interface TokenDisplayOptions {
-  /** 是否显示详细信息 */
+  /** Show detailed info */
   showDetails?: boolean;
-  /** 是否显示成本信息 */
+  /** Show cost info */
   showCost?: boolean;
-  /** 是否显示缓存效率 */
+  /** Show cache efficiency */
   showCacheEfficiency?: boolean;
-  /** 是否使用紧凑模式 */
+  /** Use compact mode */
   compact?: boolean;
-  /** 自定义格式化函数 */
+  /** Custom formatter function */
   customFormatter?: (tokens: StandardizedTokenUsage) => string;
 }
 
 /**
- * Token工具提示信息
+ * Token tooltip info
  */
 export interface TokenTooltipInfo {
-  /** 主要内容 */
+  /** Main content */
   content: string;
-  /** 详细breakdown */
+  /** Detailed breakdown */
   breakdown: {
     input: string;
     output: string;
@@ -113,7 +113,7 @@ export interface TokenTooltipInfo {
     cache_read: string;
     total: string;
   };
-  /** 效率指标 */
+  /** Efficiency metrics */
   efficiency?: {
     cache_hit_rate: string;
     cost_savings: string;
@@ -121,35 +121,35 @@ export interface TokenTooltipInfo {
 }
 
 /**
- * 从ClaudeStreamMessage中提取token数据
+ * Extract token data from ClaudeStreamMessage
  *
- * 智能处理多种字段命名方式和数据结构：
- * 1. 优先从 message.usage 获取数据
- * 2. 降级到顶层 usage 字段
- * 3. 映射所有发现的字段命名变体
- * 4. 安全处理null/undefined值
- * 5. 向后兼容现有代码
- * 6. 处理cache_creation对象格式
+ * Intelligently handles multiple field naming variants and data structures:
+ * 1. Prefer message.usage
+ * 2. Fallback to top-level usage
+ * 3. Map all discovered field name variants
+ * 4. Safely handle null/undefined values
+ * 5. Backward compatible with existing code
+ * 6. Handles cache_creation object format
  *
- * @param message - Claude流消息对象
- * @returns 标准化的token使用数据
+ * @param message - Claude stream message object
+ * @returns Standardized token usage data
  */
 export function extractMessageTokens(message: ClaudeStreamMessage | ExtendedClaudeStreamMessage): StandardizedTokenUsage {
-  // 尝试从不同位置获取usage数据（基于代码分析的优先级）
-  const primaryUsage = (message as ExtendedClaudeStreamMessage).message?.usage; // 优先级1：message.usage (主要使用)
-  const secondaryUsage = message.usage; // 优先级2：顶层usage
+  // Try to get usage data from different locations (priority based on code analysis)
+  const primaryUsage = (message as ExtendedClaudeStreamMessage).message?.usage; // Priority 1: message.usage (main usage)
+  const secondaryUsage = message.usage; // Priority 2: top-level usage
   const rawUsage: RawTokenUsage = primaryUsage || secondaryUsage || {};
 
-  // 提取基础token数据
+  // Extract basic token data
   const input_tokens = rawUsage.input_tokens ?? 0;
   const output_tokens = rawUsage.output_tokens ?? 0;
 
-  // 智能映射缓存创建token（处理所有发现的命名变体）
-  // ⚠️ 修复：cache_creation_input_tokens 已经包含了所有缓存写入的总和，
-  // 不应该再累加 cache_creation 对象中的子项，否则会导致重复计算
+  // Intelligent mapping for cache creation tokens (handle all discovered variants)
+  // ⚠️ Fix: cache_creation_input_tokens already contains the total for all cache writes,
+  // should not add cache_creation object's subfields again, or it will double count
   let cache_creation_tokens = 0;
 
-  // 优先级1：使用API标准字段（这些字段已经是总和）
+  // Priority 1: use API standard fields (these are already totals)
   if (rawUsage.cache_creation_input_tokens !== undefined) {
     cache_creation_tokens = rawUsage.cache_creation_input_tokens;
   } else if (rawUsage.cache_creation_tokens !== undefined) {
@@ -157,7 +157,7 @@ export function extractMessageTokens(message: ClaudeStreamMessage | ExtendedClau
   } else if (rawUsage.cache_write_tokens !== undefined) {
     cache_creation_tokens = rawUsage.cache_write_tokens;
   }
-  // 优先级2：如果没有总和字段，才从cache_creation对象计算
+  // Priority 2: if no total field, then calculate from cache_creation object
   else if ((rawUsage as any).cache_creation) {
     const cacheCreation = (rawUsage as any).cache_creation;
     if (cacheCreation.ephemeral_5m_input_tokens) {
@@ -168,12 +168,12 @@ export function extractMessageTokens(message: ClaudeStreamMessage | ExtendedClau
     }
   }
 
-  // 智能映射缓存读取token（处理所有发现的命名变体）
+  // Intelligent mapping for cache read tokens (handle all discovered variants)
   const cache_read_tokens =
     rawUsage.cache_read_tokens ??
     rawUsage.cache_read_input_tokens ?? 0;
 
-  // 计算总token数量（优先使用记录值，否则计算）
+  // Calculate total token count (prefer recorded value, otherwise compute)
   const total_tokens = rawUsage.total_tokens ?? rawUsage.tokens ??
     (input_tokens + output_tokens + cache_creation_tokens + cache_read_tokens);
 
@@ -187,11 +187,11 @@ export function extractMessageTokens(message: ClaudeStreamMessage | ExtendedClau
 }
 
 /**
- * 格式化token数据为显示字符串
+ * Format token data as display string
  *
- * @param tokens - 标准化的token使用数据
- * @param options - 显示选项
- * @returns 格式化的显示字符串
+ * @param tokens - Standardized token usage data
+ * @param options - Display options
+ * @returns Formatted display string
  */
 export function formatMessageTokenDisplay(
   tokens: StandardizedTokenUsage,
@@ -204,68 +204,68 @@ export function formatMessageTokenDisplay(
     return customFormatter(tokens);
   }
 
-  // 紧凑模式 - 仅显示总数
+  // Compact mode - show only total
   if (compact) {
     return `${tokens.total_tokens.toLocaleString()}`;
   }
 
-  // 详细模式 - 显示分解信息
+  // Detailed mode - show breakdown
   if (showDetails) {
     const parts = [];
 
     if (tokens.input_tokens > 0) {
-      parts.push(`输入: ${tokens.input_tokens.toLocaleString()}`);
+      parts.push(`Input: ${tokens.input_tokens.toLocaleString()}`);
     }
 
     if (tokens.output_tokens > 0) {
-      parts.push(`输出: ${tokens.output_tokens.toLocaleString()}`);
+      parts.push(`Output: ${tokens.output_tokens.toLocaleString()}`);
     }
 
     if (tokens.cache_creation_tokens > 0) {
-      parts.push(`缓存创建: ${tokens.cache_creation_tokens.toLocaleString()}`);
+      parts.push(`Cache Created: ${tokens.cache_creation_tokens.toLocaleString()}`);
     }
 
     if (tokens.cache_read_tokens > 0) {
-      parts.push(`缓存读取: ${tokens.cache_read_tokens.toLocaleString()}`);
+      parts.push(`Cache Read: ${tokens.cache_read_tokens.toLocaleString()}`);
     }
 
     return parts.length > 0 ? parts.join(' | ') : '0';
   }
 
-  // 标准模式 - 显示主要信息
+  // Standard mode - show main info
   const inputOutput = `${tokens.input_tokens.toLocaleString()}→${tokens.output_tokens.toLocaleString()}`;
   const cacheInfo = tokens.cache_creation_tokens > 0 || tokens.cache_read_tokens > 0
-    ? ` (缓存: ${(tokens.cache_creation_tokens + tokens.cache_read_tokens).toLocaleString()})`
+    ? ` (Cache: ${(tokens.cache_creation_tokens + tokens.cache_read_tokens).toLocaleString()})`
     : '';
 
   return `${inputOutput}${cacheInfo}`;
 }
 
 /**
- * 创建token信息的详细工具提示
+ * Create detailed tooltip for token info
  *
- * @param tokens - 标准化的token使用数据
- * @param model - 模型名称（用于成本计算）
- * @returns 工具提示信息对象
+ * @param tokens - Standardized token usage data
+ * @param model - Model name (for cost calculation)
+ * @returns Tooltip info object
  */
 export function createMessageTokenTooltip(
   tokens: StandardizedTokenUsage,
   model?: string
 ): TokenTooltipInfo {
-  // 构建详细breakdown
+  // Build detailed breakdown
   const breakdown = {
-    input: `输入Token: ${tokens.input_tokens.toLocaleString()}`,
-    output: `输出Token: ${tokens.output_tokens.toLocaleString()}`,
+    input: `Input Tokens: ${tokens.input_tokens.toLocaleString()}`,
+    output: `Output Tokens: ${tokens.output_tokens.toLocaleString()}`,
     cache_creation: tokens.cache_creation_tokens > 0
-      ? `缓存创建: ${tokens.cache_creation_tokens.toLocaleString()}`
+      ? `Cache Created: ${tokens.cache_creation_tokens.toLocaleString()}`
       : '',
     cache_read: tokens.cache_read_tokens > 0
-      ? `缓存读取: ${tokens.cache_read_tokens.toLocaleString()}`
+      ? `Cache Read: ${tokens.cache_read_tokens.toLocaleString()}`
       : '',
-    total: `总计: ${tokens.total_tokens.toLocaleString()} tokens`,
+    total: `Total: ${tokens.total_tokens.toLocaleString()} tokens`,
   };
 
-  // 计算缓存效率（如果有缓存数据）
+  // Calculate cache efficiency (if cache data exists)
   let efficiency;
   if (tokens.cache_creation_tokens > 0 || tokens.cache_read_tokens > 0) {
     const cache_total = tokens.cache_creation_tokens + tokens.cache_read_tokens;
@@ -274,12 +274,12 @@ export function createMessageTokenTooltip(
       : '0';
 
     efficiency = {
-      cache_hit_rate: `缓存利用率: ${cache_hit_rate}%`,
-      cost_savings: model ? `模型: ${model}` : '成本节约: 计算中...'
+      cache_hit_rate: `Cache Utilization: ${cache_hit_rate}%`,
+      cost_savings: model ? `Model: ${model}` : 'Cost Savings: Calculating...'
     };
   }
 
-  // 构建主要内容
+  // Build main content
   const content = [
     breakdown.input,
     breakdown.output,
@@ -297,20 +297,20 @@ export function createMessageTokenTooltip(
 }
 
 /**
- * 批量提取多条消息的token数据
+ * Batch extract token data from multiple messages
  *
- * @param messages - Claude流消息数组
- * @returns 标准化的token使用数据数组
+ * @param messages - Claude stream message array
+ * @returns Array of standardized token usage data
  */
 export function extractBatchMessageTokens(messages: ClaudeStreamMessage[]): StandardizedTokenUsage[] {
   return messages.map(message => extractMessageTokens(message));
 }
 
 /**
- * 计算消息会话的总token使用量
+ * Calculate total token usage for a message session
  *
- * @param messages - Claude流消息数组
- * @returns 会话总计token使用数据
+ * @param messages - Claude stream message array
+ * @returns Session total token usage data
  */
 export function calculateSessionTokenTotals(messages: ClaudeStreamMessage[]): StandardizedTokenUsage {
   const tokenData = extractBatchMessageTokens(messages);
@@ -331,10 +331,10 @@ export function calculateSessionTokenTotals(messages: ClaudeStreamMessage[]): St
 }
 
 /**
- * 验证token数据的完整性和准确性
+ * Validate the integrity and accuracy of token data
  *
- * @param tokens - 标准化的token使用数据
- * @returns 验证结果和警告信息
+ * @param tokens - Standardized token usage data
+ * @returns Validation result and warning messages
  */
 export function validateTokenData(tokens: StandardizedTokenUsage): {
   isValid: boolean;
@@ -342,17 +342,17 @@ export function validateTokenData(tokens: StandardizedTokenUsage): {
 } {
   const warnings: string[] = [];
 
-  // 检查负数
-  if (tokens.input_tokens < 0) warnings.push('输入token数量为负数');
-  if (tokens.output_tokens < 0) warnings.push('输出token数量为负数');
-  if (tokens.cache_creation_tokens < 0) warnings.push('缓存创建token数量为负数');
-  if (tokens.cache_read_tokens < 0) warnings.push('缓存读取token数量为负数');
+  // Check for negative values
+  if (tokens.input_tokens < 0) warnings.push('Input token count is negative');
+  if (tokens.output_tokens < 0) warnings.push('Output token count is negative');
+  if (tokens.cache_creation_tokens < 0) warnings.push('Cache creation token count is negative');
+  if (tokens.cache_read_tokens < 0) warnings.push('Cache read token count is negative');
 
-  // 检查总数一致性
+  // Check total consistency
   const calculated_total = tokens.input_tokens + tokens.output_tokens +
                           tokens.cache_creation_tokens + tokens.cache_read_tokens;
   if (Math.abs(tokens.total_tokens - calculated_total) > 1) {
-    warnings.push(`总token数量不一致: 记录为${tokens.total_tokens}，计算为${calculated_total}`);
+    warnings.push(`Total token count mismatch: recorded ${tokens.total_tokens}, calculated ${calculated_total}`);
   }
 
   return {
@@ -361,7 +361,7 @@ export function validateTokenData(tokens: StandardizedTokenUsage): {
   };
 }
 
-// 导出主要功能
+// Export main features
 export const tokenExtractor = {
   extract: extractMessageTokens,
   format: formatMessageTokenDisplay,
@@ -371,5 +371,5 @@ export const tokenExtractor = {
   validate: validateTokenData,
 };
 
-// 默认导出
+// Default export
 export default tokenExtractor;

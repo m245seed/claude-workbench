@@ -1,8 +1,8 @@
 /**
- * 提示词优化服务
- * 支持多个第三方API提供商（OpenAI、Deepseek、通义千问等）
+ * Prompt Enhancement Service
+ * Supports multiple third-party API providers (OpenAI, Deepseek, Qwen, etc.)
  *
- * ⚡ 使用 Tauri HTTP 客户端绕过 CORS 限制
+ * ⚡ Uses Tauri HTTP client to bypass CORS restrictions
  */
 
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
@@ -16,7 +16,7 @@ export interface PromptEnhancementProvider {
   temperature?: number;
   maxTokens?: number;
   enabled: boolean;
-  apiFormat?: 'openai' | 'gemini';  // ⚡ 新增：API 格式类型
+  apiFormat?: 'openai' | 'gemini';  // ⚡ New: API format type
 }
 
 export interface PromptEnhancementConfig {
@@ -28,7 +28,7 @@ const STORAGE_KEY = 'prompt_enhancement_providers';
 const ENCRYPTION_KEY = 'prompt_enhancement_encryption_salt';
 
 /**
- * 预设提供商模板
+ * Preset provider templates
  */
 export const PRESET_PROVIDERS = {
   openai: {
@@ -36,7 +36,7 @@ export const PRESET_PROVIDERS = {
     apiUrl: 'https://api.openai.com/v1',
     model: 'gpt-4o',
     apiFormat: 'openai' as const,
-    // ⚡ 不设置 temperature 和 maxTokens，让API使用默认值
+    // ⚡ Do not set temperature and maxTokens, let API use default values
   },
   deepseek: {
     name: 'Deepseek Chat',
@@ -45,7 +45,7 @@ export const PRESET_PROVIDERS = {
     apiFormat: 'openai' as const,
   },
   qwen: {
-    name: '通义千问 Max',
+    name: 'Qwen Max',
     apiUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     model: 'qwen-max',
     apiFormat: 'openai' as const,
@@ -65,7 +65,7 @@ export const PRESET_PROVIDERS = {
 };
 
 /**
- * 简单的XOR加密（前端基础保护，不是真正安全的加密）
+ * Simple XOR encryption (frontend basic protection, not truly secure encryption)
  */
 function simpleEncrypt(text: string, salt: string): string {
   let result = '';
@@ -89,7 +89,7 @@ function simpleDecrypt(encrypted: string, salt: string): string {
 }
 
 /**
- * 获取或创建加密盐
+ * Get or create encryption salt
  */
 function getEncryptionSalt(): string {
   let salt = localStorage.getItem(ENCRYPTION_KEY);
@@ -101,7 +101,7 @@ function getEncryptionSalt(): string {
 }
 
 /**
- * 加载配置
+ * Load config
  */
 export function loadConfig(): PromptEnhancementConfig {
   try {
@@ -113,7 +113,7 @@ export function loadConfig(): PromptEnhancementConfig {
     const config = JSON.parse(stored) as PromptEnhancementConfig;
     const salt = getEncryptionSalt();
     
-    // 解密API Key
+    // Decrypt API Key
     config.providers = config.providers.map(p => ({
       ...p,
       apiKey: simpleDecrypt(p.apiKey, salt),
@@ -127,13 +127,13 @@ export function loadConfig(): PromptEnhancementConfig {
 }
 
 /**
- * 保存配置
+ * Save config
  */
 export function saveConfig(config: PromptEnhancementConfig): void {
   try {
     const salt = getEncryptionSalt();
     
-    // 加密API Key后保存
+    // Encrypt API Key before saving
     const encryptedConfig = {
       ...config,
       providers: config.providers.map(p => ({
@@ -149,24 +149,24 @@ export function saveConfig(config: PromptEnhancementConfig): void {
 }
 
 /**
- * 调用 OpenAI 格式的API
+ * Call OpenAI format API
  */
 async function callOpenAIFormat(
   provider: PromptEnhancementProvider,
   systemPrompt: string,
   userPrompt: string
 ): Promise<string> {
-  // ⚡ 只包含必需字段，可选参数由用户决定是否添加
+  // ⚡ Only include required fields, optional params added by user if needed
   const requestBody: any = {
     model: provider.model,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
     ],
-    stream: false  // 🔧 明确禁用流式响应
+    stream: false  // 🔧 Explicitly disable streaming response
   };
 
-  // 只在用户设置时才添加可选参数
+  // Only add optional params if set by user
   if (provider.temperature !== undefined && provider.temperature !== null) {
     requestBody.temperature = provider.temperature;
   }
@@ -174,10 +174,10 @@ async function callOpenAIFormat(
     requestBody.max_tokens = provider.maxTokens;
   }
 
-  // ⚡ 修复：处理 apiUrl 末尾可能有的斜杠
+  // ⚡ Fix: handle trailing slash in apiUrl
   const baseUrl = provider.apiUrl.endsWith('/') ? provider.apiUrl.slice(0, -1) : provider.apiUrl;
 
-  // ⚡ 使用 Tauri HTTP 客户端绕过 CORS 限制
+  // ⚡ Use Tauri HTTP client to bypass CORS
   const response = await tauriFetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
@@ -200,7 +200,7 @@ async function callOpenAIFormat(
     throw new Error(`Failed to parse API response: ${parseError}`);
   }
 
-  // 检查响应数据完整性
+  // Check response data integrity
   if (!data.choices || data.choices.length === 0) {
     if (data.error) {
       throw new Error(`API error: ${JSON.stringify(data.error)}`);
@@ -225,7 +225,7 @@ async function callOpenAIFormat(
 }
 
 /**
- * 调用 Gemini 格式的API
+ * Call Gemini format API
  */
 async function callGeminiFormat(
   provider: PromptEnhancementProvider,
@@ -242,7 +242,7 @@ async function callGeminiFormat(
     ],
   };
   
-  // ⚡ 只在用户设置时才添加可选参数
+  // ⚡ Only add optional params if set by user
   const generationConfig: any = {};
   if (provider.temperature !== undefined && provider.temperature !== null) {
     generationConfig.temperature = provider.temperature;
@@ -251,18 +251,18 @@ async function callGeminiFormat(
     generationConfig.maxOutputTokens = provider.maxTokens;
   }
   
-  // 只在有配置时才添加 generationConfig
+  // Only add generationConfig if configured
   if (Object.keys(generationConfig).length > 0) {
     requestBody.generationConfig = generationConfig;
   }
 
-  // ⚡ 修复：处理 apiUrl 末尾可能有的斜杠，避免双斜杠
+  // ⚡ Fix: handle trailing slash in apiUrl, avoid double slashes
   const baseUrl = provider.apiUrl.endsWith('/') ? provider.apiUrl.slice(0, -1) : provider.apiUrl;
 
-  // Gemini API 格式：/v1beta/models/{model}:generateContent
+  // Gemini API format: /v1beta/models/{model}:generateContent
   const endpoint = `${baseUrl}/v1beta/models/${provider.model}:generateContent?key=${provider.apiKey}`;
 
-  // ⚡ 使用 Tauri HTTP 客户端绕过 CORS 限制
+  // ⚡ Use Tauri HTTP client to bypass CORS
   const response = await tauriFetch(endpoint, {
     method: 'POST',
     headers: {
@@ -286,45 +286,45 @@ async function callGeminiFormat(
 }
 
 /**
- * 调用提示词优化API（支持多种格式）
+ * Call prompt enhancement API (supports multiple formats)
  */
 export async function callEnhancementAPI(
   provider: PromptEnhancementProvider,
   prompt: string,
   context?: string[]
 ): Promise<string> {
-  const systemPrompt = `你是一个专业的提示词优化助手，专门为 Claude Code 编程助手优化用户的提示词。
+  const systemPrompt = `You are a professional prompt enhancement assistant, specializing in optimizing user prompts for the Claude Code programming assistant.
 
-【优化目标】
-1. 保持用户的原始意图和核心需求不变
-2. 使提示词更清晰、更具体、更结构化
-3. 基于对话上下文补充必要的技术细节
-4. 使用准确的技术术语，避免歧义
+[Optimization Goals]
+1. Preserve the user's original intent and core requirements
+2. Make the prompt clearer, more specific, and more structured
+3. Supplement necessary technical details based on conversation context
+4. Use accurate technical terminology and avoid ambiguity
 
-【优化原则】
-- ✅ 保持技术性和实用性
-- ✅ 只优化表达方式，不改变核心需求
-- ✅ 如果用户的意图已经很明确，只需微调即可
-- ❌ 不要添加角色扮演（如"请你扮演..."）
-- ❌ 不要添加过多的礼貌用语或客套话
-- ❌ 不要改变用户的问题类型（如把技术问题改成分析报告）
-- ❌ 不要添加用户没有要求的额外任务
+[Optimization Principles]
+- ✅ Maintain technicality and practicality
+- ✅ Only optimize expression, do not change core requirements
+- ✅ If the user's intent is already clear, only make minor adjustments
+- ❌ Do not add role-playing (e.g., "Please act as...")
+- ❌ Do not add excessive polite or formal language
+- ❌ Do not change the type of question (e.g., do not turn a technical question into an analysis report)
+- ❌ Do not add extra tasks not requested by the user
 
-${context && context.length > 0 ? `\n【当前对话上下文】\n${context.join('\n')}\n` : ''}
+${context && context.length > 0 ? `\n[Current Conversation Context]\n${context.join('\n')}\n` : ''}
 
-【输出要求】
-直接返回优化后的提示词，不要添加任何解释、评论或元信息。`;
+[Output Requirements]
+Return only the optimized prompt, do not add any explanations, comments, or meta information.`;
 
-  const userPrompt = `请优化以下提示词：\n\n${prompt}`;
+  const userPrompt = `Please optimize the following prompt:\n\n${prompt}`;
 
   console.log('[PromptEnhancement] Calling API:', provider.name, provider.apiFormat || 'openai');
 
   try {
-    // 根据API格式调用不同的函数
+    // Call different functions based on API format
     if (provider.apiFormat === 'gemini') {
       return await callGeminiFormat(provider, systemPrompt, userPrompt);
     } else {
-      // 默认使用 OpenAI 格式
+      // Default to OpenAI format
       return await callOpenAIFormat(provider, systemPrompt, userPrompt);
     }
   } catch (error) {
@@ -334,7 +334,7 @@ ${context && context.length > 0 ? `\n【当前对话上下文】\n${context.join
 }
 
 /**
- * 测试API连接
+ * Test API connection
  */
 export async function testAPIConnection(provider: PromptEnhancementProvider): Promise<{
   success: boolean;
@@ -350,19 +350,19 @@ export async function testAPIConnection(provider: PromptEnhancementProvider): Pr
     const latency = Date.now() - startTime;
     return {
       success: true,
-      message: `连接成功！延迟: ${latency}ms`,
+      message: `Connection successful! Latency: ${latency}ms`,
       latency,
     };
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : '连接失败',
+      message: error instanceof Error ? error.message : 'Connection failed',
     };
   }
 }
 
 /**
- * 获取所有启用的提供商
+ * Get all enabled providers
  */
 export function getEnabledProviders(): PromptEnhancementProvider[] {
   const config = loadConfig();
@@ -370,7 +370,7 @@ export function getEnabledProviders(): PromptEnhancementProvider[] {
 }
 
 /**
- * 添加提供商
+ * Add provider
  */
 export function addProvider(provider: PromptEnhancementProvider): void {
   const config = loadConfig();
@@ -379,7 +379,7 @@ export function addProvider(provider: PromptEnhancementProvider): void {
 }
 
 /**
- * 更新提供商
+ * Update provider
  */
 export function updateProvider(id: string, updates: Partial<PromptEnhancementProvider>): void {
   const config = loadConfig();
@@ -391,7 +391,7 @@ export function updateProvider(id: string, updates: Partial<PromptEnhancementPro
 }
 
 /**
- * 删除提供商
+ * Delete provider
  */
 export function deleteProvider(id: string): void {
   const config = loadConfig();
@@ -400,7 +400,7 @@ export function deleteProvider(id: string): void {
 }
 
 /**
- * 获取提供商
+ * Get provider
  */
 export function getProvider(id: string): PromptEnhancementProvider | undefined {
   const config = loadConfig();

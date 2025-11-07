@@ -42,7 +42,7 @@ function isWarmupMessage(message: ClaudeStreamMessage): boolean {
  *
  * 过滤规则：
  * 1. 跳过没有实际内容的元消息（isMeta && !leafUuid && !summary）
- * 2. 跳过只包含工具结果的用户消息（工具结果已在 assistant 消息中显示）
+ * 2. 跳过只包含工具结果的用户消息（工具结果已在 assistant 消消息中显示）
  * 3. 跳过空内容的用户消息
  * 4. （可选）跳过 Warmup 消息及其回复
  *
@@ -182,3 +182,5 @@ export function useDisplayableMessages(
     });
   }, [messages, hideWarmupMessages]);
 }
+
+// Translates displayed messages

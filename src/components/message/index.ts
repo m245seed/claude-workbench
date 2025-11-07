@@ -1,6 +1,6 @@
 /**
- * 消息组件模块
- * 重构后的消息显示系统
+ * Message component module
+ * Refactored message display system
  */
 
 export { MessageBubble } from "./MessageBubble";

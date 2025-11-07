@@ -1,8 +1,8 @@
 /**
- * 键盘快捷键 Hook
+ * Keyboard shortcut hook
  *
- * 从 ClaudeCodeSession 提取（原 405-462 行）
- * 处理双击 ESC 和 Shift+Tab 的快捷键检测
+ * Extracted from ClaudeCodeSession (original lines 405-462)
+ * Handles double ESC and Shift+Tab shortcut detection
  */
 
 import { useEffect, useState } from 'react';

@@ -33,15 +33,15 @@ export const MODELS: ModelConfig[] = [
 export const THINKING_MODES: ThinkingModeConfig[] = [
   {
     id: "off",
-    name: "思考模式: 关闭",
-    description: "正常响应速度",
+    name: "Thinking Mode: Off",
+    description: "Normal response speed",
     level: 0,
     tokens: undefined // No extended thinking
   },
   {
     id: "on",
-    name: "思考模式: 开启",
-    description: "启用深度思考 (10K tokens)",
+    name: "Thinking Mode: On",
+    description: "Enable deep thinking (10K tokens)",
     level: 1,
     tokens: 10000 // Default thinking tokens
   }

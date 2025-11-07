@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { translationMiddleware } from '@/lib/translationMiddleware';
 
 /**
- * Hook for translating UI messages, error messages, and toast notifications
+ * Translated messages hook
  */
 export const useTranslatedMessages = () => {
   /**

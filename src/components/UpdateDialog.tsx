@@ -17,12 +17,12 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
   const [isInstalled, setIsInstalled] = useState(false);
   const [isPortable, setIsPortable] = useState(false);
 
-  // 检测是否为免安装版本
+  // Detect if portable version (no auto update)
   useEffect(() => {
     const checkPortable = async () => {
       try {
-        // 尝试下载更新，如果失败可能是免安装版本
-        // 免安装版本通常无法使用自动更新功能
+        // Try to download update, if fails, likely portable version
+        // Portable version usually cannot use auto update
         const portable = !updateHandle;
         setIsPortable(portable);
       } catch {
@@ -45,14 +45,14 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
       await openUrl(releaseUrl);
       handleDismissAndClose();
     } catch (err) {
-      console.error("打开下载页面失败:", err);
-      setError("无法打开下载页面，请手动访问 GitHub Releases");
+      console.error("Failed to open download page:", err);
+      setError("Unable to open download page, please visit GitHub Releases manually");
     }
   };
 
   const handleDownloadAndInstall = async () => {
     if (!updateHandle) {
-      setError("自动更新不可用，请使用手动下载");
+      setError("Auto update is not available, please use manual download");
       return;
     }
 
@@ -79,9 +79,9 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
         }
       });
     } catch (err) {
-      console.error("下载安装失败:", err);
-      setError(err instanceof Error ? err.message : "下载安装失败，请尝试手动下载");
-      setIsPortable(true); // 如果自动更新失败，可能是免安装版本
+      console.error("Download and install failed:", err);
+      setError(err instanceof Error ? err.message : "Download and install failed, please try manual download");
+      setIsPortable(true); // If auto update fails, may be portable version
     } finally {
       setIsDownloading(false);
     }
@@ -91,8 +91,8 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
     try {
       await relaunchApp();
     } catch (err) {
-      console.error("重启失败:", err);
-      setError("重启失败，请手动重启应用");
+      console.error("Restart failed:", err);
+      setError("Restart failed, please restart the app manually");
     }
   };
 
@@ -115,13 +115,13 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
           <div className="flex items-center gap-2">
             <Download className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">
-              发现新版本
+              New version found
             </h2>
           </div>
           <button
             onClick={onClose}
             className="p-1 rounded-lg hover:bg-muted transition-colors"
-            aria-label="关闭"
+            aria-label="Close"
           >
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
@@ -132,7 +132,7 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
           <div className="mb-4">
             <div className="flex items-baseline gap-2 mb-2">
               <span className="text-sm text-muted-foreground">
-                当前版本:
+                Current version:
               </span>
               <span className="text-sm font-mono text-foreground">
                 v{updateInfo.currentVersion}
@@ -140,7 +140,7 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
             </div>
             <div className="flex items-baseline gap-2">
               <span className="text-sm text-muted-foreground">
-                最新版本:
+                Latest version:
               </span>
               <span className="text-base font-mono font-semibold text-primary">
                 v{updateInfo.availableVersion}
@@ -152,7 +152,7 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
           {isPortable && (
             <div className="mb-4 p-3 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 dark:border-blue-500/30 rounded-lg">
               <p className="text-sm text-blue-700 dark:text-blue-400">
-                ℹ️ 检测到您使用的是免安装版本，不支持自动更新。请点击下方按钮前往下载页面手动下载最新版本。
+                ℹ️ Detected portable version, auto update is not supported. Please click the button below to go to the download page and download the latest version manually.
               </p>
             </div>
           )}
@@ -161,7 +161,7 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
           {updateInfo.notes && (
             <div className="mb-4">
               <h3 className="text-sm font-medium text-foreground mb-2">
-                更新内容：
+                Release notes:
               </h3>
               <div className="bg-muted rounded-lg p-3 max-h-48 overflow-y-auto">
                 <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-sans">
@@ -176,7 +176,7 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">
-                  下载中...
+                  Downloading...
                 </span>
                 <span className="text-sm font-medium text-primary">
                   {downloadProgress}%
@@ -203,7 +203,7 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
           {isInstalled && (
             <div className="mb-4 p-3 bg-green-500/10 dark:bg-green-500/20 border border-green-500/20 dark:border-green-500/30 rounded-lg">
               <p className="text-sm text-green-700 dark:text-green-400">
-                ✓ 更新已安装，请重启应用以使用新版本
+                ✓ Update installed, please restart the app to use the new version
               </p>
             </div>
           )}
@@ -216,7 +216,7 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
             className="px-4 py-2 text-sm font-medium text-foreground hover:bg-muted rounded-lg transition-colors"
             disabled={isDownloading}
           >
-            稍后提醒
+            Remind me later
           </button>
           {isPortable ? (
             <button
@@ -224,7 +224,7 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
               className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors flex items-center gap-2"
             >
               <ExternalLink className="w-4 h-4" />
-              前往下载
+              Go to Download
             </button>
           ) : isInstalled ? (
             <button
@@ -232,7 +232,7 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
               className="px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors flex items-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />
-              立即重启
+              Restart Now
             </button>
           ) : (
             <button
@@ -243,12 +243,12 @@ export function UpdateDialog({ open, onClose }: UpdateDialogProps) {
               {isDownloading ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  下载中...
+                  Downloading...
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  立即更新
+                  Update Now
                 </>
               )}
             </button>

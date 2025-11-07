@@ -1,86 +1,86 @@
 /**
- * 工具注册中心 - 插件化工具渲染系统
+ * Tool Registry Center - Plugin-based Tool Rendering System
  *
- * 提供动态工具注册机制，避免硬编码条件判断
- * 支持 MCP 工具的正则匹配和优先级解决
+ * Provides a dynamic tool registration mechanism to avoid hard-coded conditional judgments
+ * Supports regex matching and priority resolution for MCP tools
  */
 
 import { FC } from 'react';
 
 /**
- * 工具渲染 Props 统一接口
+ * Unified interface for tool rendering props
  */
 export interface ToolRenderProps {
-  /** 工具名称（小写，已规范化） */
+  /** Tool name (lowercase, normalized) */
   toolName: string;
 
-  /** 工具输入对象 */
+  /** Tool input object */
   input?: Record<string, any>;
 
-  /** 工具结果对象 */
+  /** Tool result object */
   result?: {
     content?: any;
     is_error?: boolean;
   };
 
-  /** 工具唯一 ID */
+  /** Unique tool ID */
   toolId?: string;
 
-  /** 可选的回调函数 */
+  /** Optional callback function */
   onLinkDetected?: (url: string) => void;
 }
 
 /**
- * 工具渲染器定义
+ * Tool renderer definition
  */
 export interface ToolRenderer {
-  /** 工具名称（用于精确匹配） */
+  /** Tool name (for exact match) */
   name: string;
 
-  /** 可选：正则匹配模式（用于 MCP 工具等） */
+  /** Optional: regex match pattern (for MCP tools, etc.) */
   pattern?: RegExp;
 
-  /** 渲染函数 */
+  /** Render function */
   render: FC<ToolRenderProps>;
 
-  /** 优先级（数字越大优先级越高，用于解决冲突） */
+  /** Priority (higher number = higher priority, used to resolve conflicts) */
   priority?: number;
 
-  /** 描述 */
+  /** Description */
   description?: string;
 }
 
 /**
- * 工具注册中心类
+ * Tool registry center class
  */
 class ToolRegistryClass {
   private renderers: Map<string, ToolRenderer> = new Map();
   private patternRenderers: ToolRenderer[] = [];
 
   /**
-   * 注册工具渲染器
+   * Register a tool renderer
    */
   register(renderer: ToolRenderer): void {
-    // 精确名称注册
+    // Exact name registration
     this.renderers.set(renderer.name.toLowerCase(), renderer);
 
-    // 如果有正则模式，同时添加到模式列表
+    // If there is a regex pattern, also add to pattern list
     if (renderer.pattern) {
       this.patternRenderers.push(renderer);
-      // 按优先级排序（降序）
+      // Sort by priority (descending)
       this.patternRenderers.sort((a, b) => (b.priority || 0) - (a.priority || 0));
     }
   }
 
   /**
-   * 批量注册工具
+   * Batch register tools
    */
   registerBatch(renderers: ToolRenderer[]): void {
     renderers.forEach(renderer => this.register(renderer));
   }
 
   /**
-   * 注销工具渲染器
+   * Unregister a tool renderer
    */
   unregister(name: string): void {
     const normalizedName = name.toLowerCase();
@@ -88,27 +88,27 @@ class ToolRegistryClass {
 
     this.renderers.delete(normalizedName);
 
-    // 从模式列表中移除
+    // Remove from pattern list
     if (renderer?.pattern) {
       this.patternRenderers = this.patternRenderers.filter(r => r.name !== name);
     }
   }
 
   /**
-   * 获取工具渲染器
-   * @param toolName 工具名称
-   * @returns 渲染器或 null
+   * Get tool renderer
+   * @param toolName Tool name
+   * @returns Renderer or null
    */
   getRenderer(toolName: string): ToolRenderer | null {
     const normalizedName = toolName.toLowerCase();
 
-    // 1. 精确匹配
+    // 1. Exact match
     const exactMatch = this.renderers.get(normalizedName);
     if (exactMatch) {
       return exactMatch;
     }
 
-    // 2. 正则模式匹配（按优先级顺序）
+    // 2. Regex pattern match (in priority order)
     for (const renderer of this.patternRenderers) {
       if (renderer.pattern && renderer.pattern.test(toolName)) {
         return renderer;
@@ -119,21 +119,21 @@ class ToolRegistryClass {
   }
 
   /**
-   * 检查工具是否已注册
+   * Check if a tool is registered
    */
   hasRenderer(toolName: string): boolean {
     return this.getRenderer(toolName) !== null;
   }
 
   /**
-   * 获取所有已注册的工具列表
+   * Get all registered tool renderers
    */
   getAllRenderers(): ToolRenderer[] {
     return Array.from(this.renderers.values());
   }
 
   /**
-   * 清空所有注册
+   * Clear all registrations
    */
   clear(): void {
     this.renderers.clear();
@@ -141,7 +141,7 @@ class ToolRegistryClass {
   }
 
   /**
-   * 获取注册统计
+   * Get registration statistics
    */
   getStats(): { total: number; withPattern: number } {
     return {
@@ -151,8 +151,8 @@ class ToolRegistryClass {
   }
 }
 
-// 导出单例实例
+// Export singleton instance
 export const toolRegistry = new ToolRegistryClass();
 
-// 导出类型（用于测试等场景）
+// Export type (for testing, etc.)
 export type ToolRegistry = ToolRegistryClass;

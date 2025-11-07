@@ -1,14 +1,14 @@
 /**
- * 消息内容提取工具库
+ * Message content extraction utility library
  *
- * 从 ClaudeCodeSession 提取（原分散在多处的内容提取逻辑）
- * 统一处理 Claude API 返回的多种消息格式
+ * Extracted from ClaudeCodeSession (originally scattered content extraction logic)
+ * Unified handling of various message formats returned by Claude API
  */
 
 import type { ClaudeStreamMessage } from '@/types/claude';
 
 /**
- * 内容来源标识符
+ * Content source identifier
  */
 export type ContentSource =
   | 'direct_content'          // message.content (string)
@@ -22,21 +22,21 @@ export type ContentSource =
   | 'summary_field';          // message.summary
 
 /**
- * 内容提取结果
+ * Content extraction result
  */
 export interface ExtractedContent {
-  /** 提取的文本内容 */
+  /** Extracted text content */
   text: string;
-  /** 内容来源列表（按优先级排序） */
+  /** List of content sources (sorted by priority) */
   sources: ContentSource[];
-  /** 是否成功提取到内容 */
+  /** Whether content was successfully extracted */
   hasContent: boolean;
 }
 
 /**
- * 从 Claude 消息中提取文本内容
+ * Extract text content from Claude message
  *
- * 支持 8 种内容格式，按优先级依次尝试：
+ * Supports 8 content formats, tries in order of priority:
  * 1. message.content (string)
  * 2. message.content (array with text items)
  * 3. message.content.text
@@ -47,8 +47,8 @@ export interface ExtractedContent {
  * 8. message.error
  * 9. message.summary
  *
- * @param message - Claude 流式消息对象
- * @returns 提取的内容对象
+ * @param message - Claude stream message object
+ * @returns Extracted content object
  *
  * @example
  * const extracted = extractMessageContent(message);
@@ -143,17 +143,17 @@ export function extractMessageContent(message: ClaudeStreamMessage): ExtractedCo
 }
 
 /**
- * 判断消息是否为 Claude 响应消息
+ * Determine whether the message is a Claude response message
  *
- * @param message - 消息对象
- * @returns 是否为 Claude 响应
+ * @param message - Message object
+ * @returns Whether it is a Claude response
  */
 export function isClaudeResponse(message: ClaudeStreamMessage): boolean {
   return (
     message.type === 'assistant' ||
     message.type === 'result' ||
     (message.type === 'system' && message.subtype !== 'init') ||
-    // 任何有实际内容的消息都可能是 Claude 响应
+    // Any message with actual content may be a Claude response
     !!(
       message.content ||
       message.message?.content ||
@@ -166,10 +166,10 @@ export function isClaudeResponse(message: ClaudeStreamMessage): boolean {
 }
 
 /**
- * 提取思考块内容
+ * Extract thinking block content
  *
- * @param message - Claude 消息对象
- * @returns 思考块文本，如果没有则返回空字符串
+ * @param message - Claude message object
+ * @returns Thinking block text, or empty string if none
  */
 export function extractThinkingContent(message: ClaudeStreamMessage): string {
   if (!message.message?.content) return '';
@@ -182,10 +182,10 @@ export function extractThinkingContent(message: ClaudeStreamMessage): string {
 }
 
 /**
- * 检查消息是否包含思考块
+ * Check whether the message contains a thinking block
  *
- * @param message - Claude 消息对象
- * @returns 是否包含思考块
+ * @param message - Claude message object
+ * @returns Whether it contains a thinking block
  */
 export function hasThinkingBlock(message: ClaudeStreamMessage): boolean {
   if (!message.message?.content) return false;

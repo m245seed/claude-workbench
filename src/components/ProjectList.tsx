@@ -28,6 +28,7 @@ import type { Project } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { formatTimeAgo } from "@/lib/date-utils";
 import { Pagination } from "@/components/ui/pagination";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DeletedProjects } from "./DeletedProjects";
 
@@ -99,6 +100,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
   onProjectsChanged,
   className,
 }) => {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
@@ -176,7 +178,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                 </div>
                 <div className="flex items-center gap-1">
                   <FileText className="h-3 w-3" />
-                  <span>{project.sessions.length} 会话</span>
+                  <span>{project.sessions.length} {t('projects.sessions')}</span>
                 </div>
               </div>
 
@@ -212,7 +214,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({
                           className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          删除项目
+                          {t('projects.deleteProject')}
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>
@@ -238,11 +240,11 @@ export const ProjectList: React.FC<ProjectListProps> = ({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="active" className="flex items-center gap-2">
             <FolderOpen className="h-4 w-4" />
-            活跃项目
+            {t('projects.activeProjects')}
           </TabsTrigger>
           <TabsTrigger value="deleted" className="flex items-center gap-2">
             <Archive className="h-4 w-4" />
-            已删除项目
+            {t('projects.deletedProjects')}
           </TabsTrigger>
         </TabsList>
         
@@ -259,10 +261,10 @@ export const ProjectList: React.FC<ProjectListProps> = ({
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>确认删除项目</DialogTitle>
+            <DialogTitle>{t('projects.confirmDeleteProject')}</DialogTitle>
             <DialogDescription>
-              您确定要删除项目 "{projectToDelete ? getProjectName(projectToDelete.path) : ""}" 吗？
-              这将删除所有相关的会话数据和Todo文件，此操作无法撤销。
+              {t('projects.confirmDeleteMessage', { 0: projectToDelete ? getProjectName(projectToDelete.path) : "" })}
+              {t('projects.confirmDeleteWarning')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -271,14 +273,14 @@ export const ProjectList: React.FC<ProjectListProps> = ({
               onClick={cancelDelete}
               disabled={isDeleting}
             >
-              取消
+              {t('buttons.cancel')}
             </Button>
             <Button
               variant="destructive"
               onClick={confirmDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? "删除中..." : "确认删除"}
+              {isDeleting ? t('projects.deleting') : t('projects.confirmDelete')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -175,21 +175,21 @@ export class ErrorHandler {
             code: 'API_CONTEXT_TOO_LONG',
             type: ErrorType.API_CONTEXT_TOO_LONG,
             message: error.message,
-            userMessage: '对话内容过长，请使用压缩功能或开始新对话',
+            userMessage: 'Conversation is too long. Please use the compression feature or start a new conversation.',
             recoverable: true,
             retryable: false,
             context,
             originalError: error,
             actions: [
               {
-                label: '自动压缩',
+                label: 'Auto Compress',
                 action: () => {
                   window.dispatchEvent(new CustomEvent('trigger-auto-compact'));
                 },
                 primary: true,
               },
               {
-                label: '开始新对话',
+                label: 'Start New Conversation',
                 action: () => {
                   window.dispatchEvent(new CustomEvent('start-new-conversation'));
                 },
@@ -202,7 +202,7 @@ export class ErrorHandler {
           code: 'API_INVALID_REQUEST',
           type: ErrorType.API_INVALID_REQUEST,
           message: error.message,
-          userMessage: '请求参数无效，请检查输入内容',
+          userMessage: 'Invalid request parameters. Please check your input.',
           recoverable: true,
           retryable: false,
           context,
@@ -214,14 +214,14 @@ export class ErrorHandler {
           code: 'AUTH_INVALID_API_KEY',
           type: ErrorType.AUTH_INVALID_API_KEY,
           message: error.message,
-          userMessage: 'API 密钥无效或已过期，请检查配置',
+          userMessage: 'API key is invalid or expired. Please check your configuration.',
           recoverable: true,
           retryable: false,
           context,
           originalError: error,
           actions: [
             {
-              label: '检查API密钥',
+              label: 'Check API Key',
               action: () => {
                 window.dispatchEvent(new CustomEvent('open-provider-settings'));
               },
@@ -236,14 +236,14 @@ export class ErrorHandler {
           code: 'AUTH_PERMISSION_DENIED',
           type: ErrorType.AUTH_PERMISSION_DENIED,
           message: error.message,
-          userMessage: '访问被拒绝，请检查账户权限和余额',
+          userMessage: 'Access denied. Please check your account permissions and balance.',
           recoverable: true,
           retryable: false,
           context,
           originalError: error,
           actions: [
             {
-              label: '检查账户状态',
+              label: 'Check Account Status',
               action: () => {
                 window.open('https://console.anthropic.com/settings/billing', '_blank');
               },
@@ -256,14 +256,14 @@ export class ErrorHandler {
           code: 'API_MODEL_NOT_FOUND',
           type: ErrorType.API_MODEL_NOT_FOUND,
           message: error.message,
-          userMessage: '所请求的模型不存在或不可用',
+          userMessage: 'The requested model does not exist or is unavailable.',
           recoverable: true,
           retryable: false,
           context,
           originalError: error,
           actions: [
             {
-              label: '选择其他模型',
+              label: 'Select Another Model',
               action: () => {
                 window.dispatchEvent(new CustomEvent('show-model-selector'));
               },
@@ -277,14 +277,14 @@ export class ErrorHandler {
           code: 'AUTH_RATE_LIMITED',
           type: ErrorType.AUTH_RATE_LIMITED,
           message: error.message,
-          userMessage: '请求过于频繁，请稍后再试',
+          userMessage: 'Too many requests. Please try again later.',
           recoverable: true,
           retryable: true,
           context,
           originalError: error,
           actions: [
             {
-              label: '稍后重试',
+              label: 'Retry Later',
               action: () => {
                 // Auto-retry will be handled by caller
               },
@@ -301,14 +301,14 @@ export class ErrorHandler {
           code: 'API_OVERLOADED',
           type: ErrorType.API_OVERLOADED,
           message: error.message,
-          userMessage: 'Claude 服务暂时不可用，请稍后重试',
+          userMessage: 'Claude service is temporarily unavailable. Please try again later.',
           recoverable: true,
           retryable: true,
           context,
           originalError: error,
           actions: [
             {
-              label: '自动重试',
+              label: 'Auto Retry',
               action: () => {
                 // Auto-retry will be handled by caller
               },
@@ -322,7 +322,7 @@ export class ErrorHandler {
           code: 'API_UNKNOWN_ERROR',
           type: ErrorType.UNKNOWN_ERROR,
           message: error.message,
-          userMessage: `API 错误 (${status}): ${error.message}`,
+          userMessage: `API error (${status}): ${error.message}`,
           recoverable: true,
           retryable: status >= 500,
           context,
@@ -343,20 +343,20 @@ export class ErrorHandler {
         code: 'NETWORK_CONNECTION_FAILED',
         type: ErrorType.NETWORK_CONNECTION_FAILED,
         message: error.message,
-        userMessage: '网络连接失败，请检查网络连接后重试',
+        userMessage: 'Network connection failed. Please check your connection and try again.',
         recoverable: true,
         retryable: true,
         context,
         originalError: error,
         actions: [
           {
-            label: '检查网络连接',
+            label: 'Check Network Connection',
             action: () => {
               window.open('https://www.google.com', '_blank');
             },
           },
           {
-            label: '重试',
+            label: 'Retry',
             action: () => {
               // Auto-retry will be handled by caller
             },
@@ -372,7 +372,7 @@ export class ErrorHandler {
         code: 'NETWORK_TIMEOUT',
         type: ErrorType.NETWORK_TIMEOUT,
         message: error.message,
-        userMessage: '请求超时，请重试或检查网络状况',
+        userMessage: 'Request timed out. Please retry or check your network.',
         recoverable: true,
         retryable: true,
         context,
@@ -386,14 +386,14 @@ export class ErrorHandler {
         code: 'STORAGE_QUOTA_EXCEEDED',
         type: ErrorType.STORAGE_QUOTA_EXCEEDED,
         message: error.message,
-        userMessage: '存储空间不足，请清理缓存或释放空间',
+        userMessage: 'Insufficient storage space. Please clear cache or free up space.',
         recoverable: true,
         retryable: false,
         context,
         originalError: error,
         actions: [
           {
-            label: '清理缓存',
+            label: 'Clear Cache',
             action: () => {
               window.dispatchEvent(new CustomEvent('clear-cache'));
             },
@@ -409,14 +409,14 @@ export class ErrorHandler {
         code: 'SDK_CONFIGURATION_ERROR',
         type: ErrorType.SDK_CONFIGURATION_ERROR,
         message: error.message,
-        userMessage: '配置错误，请检查设置',
+        userMessage: 'Configuration error. Please check your settings.',
         recoverable: true,
         retryable: false,
         context,
         originalError: error,
         actions: [
           {
-            label: '检查配置',
+            label: 'Check Settings',
             action: () => {
               window.dispatchEvent(new CustomEvent('open-settings'));
             },
@@ -431,7 +431,7 @@ export class ErrorHandler {
       code: 'UNKNOWN_ERROR',
       type: ErrorType.UNKNOWN_ERROR,
       message: error.message,
-      userMessage: `发生未知错误: ${error.message}`,
+      userMessage: `Unknown error occurred: ${error.message}`,
       recoverable: true,
       retryable: false,
       context,
@@ -447,7 +447,7 @@ export class ErrorHandler {
       code: 'UNKNOWN_ERROR',
       type: ErrorType.UNKNOWN_ERROR,
       message: String(error),
-      userMessage: '发生未知错误，请重试或联系支持',
+      userMessage: 'An unknown error occurred. Please retry or contact support.',
       recoverable: true,
       retryable: true,
       context,

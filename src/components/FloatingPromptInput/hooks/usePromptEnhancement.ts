@@ -31,7 +31,7 @@ export function usePromptEnhancement({
     
     if (!trimmedPrompt) {
       console.log('[handleEnhancePrompt] Empty prompt, setting default message');
-      onPromptChange("请描述您想要完成的任务，我会帮您优化这个提示词");
+      onPromptChange("Please describe the task you want to accomplish, and I will help you optimize this prompt.");
       return;
     }
     
@@ -54,11 +54,11 @@ export function usePromptEnhancement({
         const target = isExpanded ? expandedTextareaRef.current : textareaRef.current;
         target?.focus();
       } else {
-        onPromptChange(trimmedPrompt + '\n\n⚠️ 增强功能返回空结果，请重试');
+        onPromptChange(trimmedPrompt + '\n\n⚠️ Enhancement returned an empty result, please try again.');
       }
     } catch (error) {
       console.error('[handleEnhancePrompt] Failed to enhance prompt:', error);
-      let errorMessage = '未知错误';
+      let errorMessage = 'Unknown error';
       
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -81,7 +81,7 @@ export function usePromptEnhancement({
     const trimmedPrompt = prompt.trim();
     
     if (!trimmedPrompt) {
-      onPromptChange("请描述您想要完成的任务，我会帮您优化这个提示词");
+      onPromptChange("Please describe the task you want to accomplish, and I will help you optimize this prompt.");
       return;
     }
     
@@ -97,11 +97,11 @@ export function usePromptEnhancement({
         const target = isExpanded ? expandedTextareaRef.current : textareaRef.current;
         target?.focus();
       } else {
-        onPromptChange(trimmedPrompt + '\n\n⚠️ Gemini优化功能返回空结果，请重试');
+        onPromptChange(trimmedPrompt + '\n\n⚠️ Gemini optimization returned an empty result, please try again.');
       }
     } catch (error) {
       console.error('[handleEnhancePromptWithGemini] Failed:', error);
-      let errorMessage = '未知错误';
+      let errorMessage = 'Unknown error';
       
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -115,25 +115,25 @@ export function usePromptEnhancement({
     }
   };
 
-  // ⚡ 新增：使用第三方API优化提示词
+  // ⚡ New: Use third-party API to enhance prompt
   const handleEnhancePromptWithAPI = async (providerId: string) => {
     console.log('[handleEnhancePromptWithAPI] Starting with provider:', providerId);
     const trimmedPrompt = prompt.trim();
     
     if (!trimmedPrompt) {
-      onPromptChange("请描述您想要完成的任务");
+      onPromptChange("Please describe the task you want to accomplish.");
       return;
     }
     
-    // 获取提供商配置
+    // Get provider configuration
     const provider = getProvider(providerId);
     if (!provider) {
-      onPromptChange(trimmedPrompt + '\n\n❌ 提供商配置未找到');
+      onPromptChange(trimmedPrompt + '\n\n❌ Provider configuration not found.');
       return;
     }
     
     if (!provider.enabled) {
-      onPromptChange(trimmedPrompt + '\n\n❌ 提供商已禁用，请在设置中启用');
+      onPromptChange(trimmedPrompt + '\n\n❌ Provider is disabled, please enable it in settings.');
       return;
     }
     
@@ -149,11 +149,11 @@ export function usePromptEnhancement({
         const target = isExpanded ? expandedTextareaRef.current : textareaRef.current;
         target?.focus();
       } else {
-        onPromptChange(trimmedPrompt + '\n\n⚠️ API返回空结果，请重试');
+        onPromptChange(trimmedPrompt + '\n\n⚠️ API returned an empty result, please try again.');
       }
     } catch (error) {
       console.error('[handleEnhancePromptWithAPI] Failed:', error);
-      let errorMessage = '未知错误';
+      let errorMessage = 'Unknown error';
       
       if (error instanceof Error) {
         errorMessage = error.message;

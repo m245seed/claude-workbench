@@ -9,7 +9,7 @@ interface UpdateBadgeProps {
 export function UpdateBadge({ className = "", onClick }: UpdateBadgeProps) {
   const { hasUpdate, updateInfo, isDismissed, dismissUpdate } = useUpdate();
 
-  // 如果没有更新或已关闭，不显示
+  // If there is no update or it has been dismissed, do not display
   if (!hasUpdate || isDismissed || !updateInfo) {
     return null;
   }
@@ -35,7 +35,7 @@ export function UpdateBadge({ className = "", onClick }: UpdateBadgeProps) {
           onClick();
         }
       }}
-      title="有新版本可用"
+      title="A new version is available"
     >
       <Download className="w-3 h-3 text-primary" />
       <span className="text-foreground font-medium">
@@ -52,8 +52,8 @@ export function UpdateBadge({ className = "", onClick }: UpdateBadgeProps) {
           transition-colors
           focus:outline-none focus:ring-2 focus:ring-primary/20
         "
-        aria-label="关闭更新提醒"
-        title="关闭更新提醒"
+        aria-label="Dismiss update notification"
+        title="Dismiss update notification"
       >
         <X className="w-3 h-3 text-muted-foreground" />
       </button>

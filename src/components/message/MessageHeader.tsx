@@ -3,18 +3,18 @@ import { User, Bot, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MessageHeaderProps {
-  /** 消息类型 */
+  /** Message type */
   variant: "user" | "assistant";
-  /** 时间戳 */
+  /** Timestamp */
   timestamp?: string;
-  /** 是否显示头像 */
+  /** Whether to show avatar */
   showAvatar?: boolean;
-  /** 自定义类名 */
+  /** Custom class name */
   className?: string;
 }
 
 /**
- * 格式化时间戳为 HH:MM:SS
+ * Format timestamp to HH:MM:SS
  */
 const formatTimestamp = (timestamp: string | undefined): string => {
   if (!timestamp) return '';
@@ -35,8 +35,8 @@ const formatTimestamp = (timestamp: string | undefined): string => {
 };
 
 /**
- * 消息头部组件
- * 显示发送者信息和时间戳
+ * Message header component
+ * Display sender information and timestamp
  */
 export const MessageHeader: React.FC<MessageHeaderProps> = ({
   variant,

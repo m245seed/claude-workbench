@@ -1,5 +1,5 @@
 /**
- * usePromptExecution Hook
+ * Prompt execution hook
  *
  * Manages Claude Code prompt execution including:
  * - Input validation and queueing
@@ -120,7 +120,7 @@ export function usePromptExecution(config: UsePromptExecutionConfig): UsePromptE
     // ========================================================================
 
     if (!projectPath) {
-      setError("请先选择项目目录");
+      setError("Please select a project directory first");
       return;
     }
 
@@ -165,7 +165,7 @@ export function usePromptExecution(config: UsePromptExecutionConfig): UsePromptE
         && !prompt.includes('<command-name>')
         && !prompt.includes('Launching skill:');
       
-      // 对于已有会话，立即记录；对于新会话，在收到 session_id 后记录
+      // For existing sessions, record immediately; for new sessions, record upon receiving session_id
       if (effectiveSession && isUserInitiated) {
         try {
           recordedPromptIndex = await api.recordPromptSent(
@@ -233,9 +233,9 @@ export function usePromptExecution(config: UsePromptExecutionConfig): UsePromptE
             try {
               const msg = JSON.parse(evt.payload) as ClaudeStreamMessage;
               
-              // 在收到第一条 user 消息后记录
+              // Record upon receiving the first user message
               if (msg.type === 'user' && !hasRecordedPrompt && isUserInitiated) {
-                // 检查这是否是我们发送的那条消息（通过内容匹配）
+                // Check if this is the message we sent (by content matching)
                 let isOurMessage = false;
                 const msgContent: any = msg.message?.content;
                 
@@ -570,7 +570,7 @@ export function usePromptExecution(config: UsePromptExecutionConfig): UsePromptE
       // 7️⃣ Error Handling
       // ========================================================================
       console.error("Failed to send prompt:", err);
-      setError("发送提示失败");
+      setError("Failed to send prompt");
       setIsLoading(false);
       hasActiveSessionRef.current = false;
       // Reset session state on error

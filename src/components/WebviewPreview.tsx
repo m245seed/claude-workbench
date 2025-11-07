@@ -184,7 +184,7 @@ const WebviewPreviewComponent: React.FC<WebviewPreviewProps> = ({
         <div className="flex items-center justify-between px-3 py-2 border-b">
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">预览</span>
+            <span className="text-sm font-medium">Preview</span>
             {isLoading && (
               <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
             )}
@@ -302,7 +302,7 @@ const WebviewPreviewComponent: React.FC<WebviewPreviewProps> = ({
             >
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">正在加载预览...</p>
+                <p className="text-sm text-muted-foreground">Loading preview...</p>
               </div>
             </motion.div>
           )}
@@ -312,12 +312,12 @@ const WebviewPreviewComponent: React.FC<WebviewPreviewProps> = ({
         {hasError ? (
           <div className="flex flex-col items-center justify-center h-full p-8">
             <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-            <h3 className="text-lg font-semibold mb-2">预览加载失败</h3>
+            <h3 className="text-lg font-semibold mb-2">Preview load failed</h3>
             <p className="text-sm text-muted-foreground text-center mb-4">
-              {errorMessage || "无法加载页面。请检查 URL 并重试。"}
+              {errorMessage || "Unable to load the page. Please check the URL and try again."}
             </p>
             <Button onClick={handleRefresh} variant="outline" size="sm">
-              重试
+              Retry
             </Button>
           </div>
         ) : currentUrl ? (
@@ -338,14 +338,14 @@ const WebviewPreviewComponent: React.FC<WebviewPreviewProps> = ({
           // Empty state when no URL is provided
           <div className="flex flex-col items-center justify-center h-full p-8 text-foreground">
             <Globe className="h-16 w-16 text-muted-foreground/50 mb-6" />
-            <h3 className="text-xl font-semibold mb-3">输入 URL 进行预览</h3>
+            <h3 className="text-xl font-semibold mb-3">Enter a URL to preview</h3>
             <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">
-              在上方地址栏中输入 URL 来预览网站。
+              Enter a URL in the address bar above to preview the website.
             </p>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>尝试输入</span>
+              <span>Try entering</span>
               <code className="px-2 py-1 bg-muted/50 text-foreground rounded font-mono text-xs">localhost:3000</code>
-              <span>或其他 URL</span>
+              <span>or another URL</span>
             </div>
           </div>
         )}
@@ -354,4 +354,4 @@ const WebviewPreviewComponent: React.FC<WebviewPreviewProps> = ({
   );
 };
 
-export const WebviewPreview = React.memo(WebviewPreviewComponent); 
+export const WebviewPreview = React.memo(WebviewPreviewComponent);

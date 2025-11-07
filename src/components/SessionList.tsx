@@ -4,9 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
 import { ClaudeMemoriesDropdown } from "@/components/ClaudeMemoriesDropdown";
 import { cn } from "@/lib/utils";
-import { formatUnixTimestamp, formatISOTimestamp, truncateText, getFirstLine } from "@/lib/date-utils";
+import {
+  formatUnixTimestamp,
+  formatISOTimestamp,
+  truncateText,
+  getFirstLine,
+} from "@/lib/date-utils";
 import type { Session, ClaudeMdFile } from "@/lib/api";
-import { useTranslation } from '@/hooks/useTranslation';
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface SessionListProps {
   /**
@@ -43,7 +48,7 @@ const ITEMS_PER_PAGE = 20;
 
 /**
  * SessionList component - Displays paginated sessions for a specific project
- * 
+ *
  * @example
  * <SessionList
  *   sessions={sessions}
@@ -64,29 +69,30 @@ export const SessionList: React.FC<SessionListProps> = ({
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 🔧 过滤掉空白无用的会话（没有 first_message 或 id 为空的）
-  const validSessions = sessions.filter(session =>
-    session.id && session.id.trim() !== '' &&
-    (session.first_message && session.first_message.trim() !== '')
+  // 🔧 Filter out empty useless sessions (no first_message or empty id)
+  const validSessions = sessions.filter(
+    (session) =>
+      session.id &&
+      session.id.trim() !== "" &&
+      session.first_message &&
+      session.first_message.trim() !== ""
   );
 
-  // 🔧 按活跃度排序：优先使用最后一条消息时间，其次第一条消息时间，最后使用创建时间
+  // 🔧 Sort by activity: prioritize last message time, then first message time, finally creation time
   const sortedSessions = [...validSessions].sort((a, b) => {
-    // 获取会话 A 的最后活跃时间
     const timeA = a.last_message_timestamp
       ? new Date(a.last_message_timestamp).getTime()
       : a.message_timestamp
       ? new Date(a.message_timestamp).getTime()
       : a.created_at * 1000;
 
-    // 获取会话 B 的最后活跃时间
     const timeB = b.last_message_timestamp
       ? new Date(b.last_message_timestamp).getTime()
       : b.message_timestamp
       ? new Date(b.message_timestamp).getTime()
       : b.created_at * 1000;
 
-    return timeB - timeA; // 降序：最新的在前
+    return timeB - timeA; // descending: newest first
   });
 
   // Calculate pagination
@@ -94,7 +100,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentSessions = sortedSessions.slice(startIndex, endIndex);
-  
+
   // Reset to page 1 if sessions change
   React.useEffect(() => {
     setCurrentPage(1);
@@ -103,7 +109,7 @@ export const SessionList: React.FC<SessionListProps> = ({
   return (
     <div className={cn("space-y-4", className)}>
       <div className="flex items-center space-x-3">
-        {/* 🔧 IMPROVED: 提升返回项目列表按钮的显著性 */}
+        {/* 🔧 IMPROVED: Enhance the prominence of the back-to-project-list button */}
         <Button
           variant="default"
           size="default"
@@ -111,14 +117,18 @@ export const SessionList: React.FC<SessionListProps> = ({
           className="h-10 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all duration-200 shadow-md"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          <span>返回项目列表</span>
+          <span>Back to project list</span>
         </Button>
         <div className="flex-1 min-w-0">
           <h2 className="text-base font-medium truncate">{projectPath}</h2>
           <p className="text-xs text-muted-foreground">
-            {validSessions.length} valid session{validSessions.length !== 1 ? 's' : ''}
+            {validSessions.length} valid session
+            {validSessions.length !== 1 ? "s" : ""}{" "}
             {sessions.length !== validSessions.length && (
-              <span className="text-muted-foreground/70"> ({sessions.length - validSessions.length} hidden)</span>
+              <span className="text-muted-foreground/70">
+                {" "}
+                ({sessions.length - validSessions.length} hidden)
+              </span>
             )}
           </p>
         </div>
@@ -143,7 +153,7 @@ export const SessionList: React.FC<SessionListProps> = ({
             className="w-full max-w-md"
           >
             <Plus className="mr-2 h-4 w-4" />
-            {t('claude.newSession')}
+            {t("claude.newSession")}
           </Button>
         </div>
       )}
@@ -166,8 +176,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                 <p className="text-sm font-medium truncate text-foreground group-hover:text-primary transition-colors">
                   {session.first_message
                     ? truncateText(getFirstLine(session.first_message), 80)
-                    : session.id
-                  }
+                    : session.id}
                 </p>
 
                 {/* Session ID (small and subtle) */}
@@ -176,7 +185,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                 </p>
               </div>
 
-              {/* Timestamp - 优先显示最后一条消息时间 */}
+              {/* Timestamp - prioritize showing last message time */}
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
                 <Clock className="h-3 w-3" />
                 <span>
@@ -184,8 +193,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                     ? formatISOTimestamp(session.last_message_timestamp)
                     : session.message_timestamp
                     ? formatISOTimestamp(session.message_timestamp)
-                    : formatUnixTimestamp(session.created_at)
-                  }
+                    : formatUnixTimestamp(session.created_at)}
                 </span>
               </div>
             </div>
@@ -200,4 +208,4 @@ export const SessionList: React.FC<SessionListProps> = ({
       />
     </div>
   );
-}; 
+};

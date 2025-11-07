@@ -1,19 +1,19 @@
 use serde::{Deserialize, Serialize};
 use std::process::Command as StdCommand;
 
-/// Git 代码变更统计
+/// Git code change statistics
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GitDiffStats {
-    /// 新增的行数
+    /// Number of lines added
     pub lines_added: usize,
-    /// 删除的行数
+    /// Number of lines removed
     pub lines_removed: usize,
-    /// 修改的文件数
+    /// Number of files changed
     pub files_changed: usize,
 }
 
-/// 获取两个 commit 之间的代码变更统计
+/// Get code change statistics between two commits
 #[tauri::command]
 pub async fn get_git_diff_stats(
     project_path: String,
@@ -22,7 +22,7 @@ pub async fn get_git_diff_stats(
 ) -> Result<GitDiffStats, String> {
     let to_ref = to_commit.unwrap_or_else(|| "HEAD".to_string());
 
-    // 使用 git diff --numstat 获取统计
+    // Use `git diff --numstat` to get statistics
     let mut cmd = StdCommand::new("git");
     cmd.current_dir(&project_path);
     cmd.args(&["diff", "--numstat", &from_commit, &to_ref]);
@@ -46,8 +46,8 @@ pub async fn get_git_diff_stats(
 
     let stdout = String::from_utf8_lossy(&output.stdout);
 
-    // 解析 git diff --numstat 输出
-    // 格式：<added>\t<removed>\t<filename>
+    // Parse `git diff --numstat` output
+    // Format: <added>\t<removed>\t<filename>
     let mut lines_added = 0;
     let mut lines_removed = 0;
     let mut files_changed = 0;
@@ -57,12 +57,12 @@ pub async fn get_git_diff_stats(
         if parts.len() >= 2 {
             files_changed += 1;
 
-            // 解析新增行数
+            // Parse added lines
             if let Ok(added) = parts[0].parse::<usize>() {
                 lines_added += added;
             }
 
-            // 解析删除行数
+            // Parse removed lines
             if let Ok(removed) = parts[1].parse::<usize>() {
                 lines_removed += removed;
             }
@@ -76,7 +76,7 @@ pub async fn get_git_diff_stats(
     })
 }
 
-/// 获取当前会话的代码变更统计（从会话开始到现在）
+/// Get code change statistics for the current session (from session start to now)
 #[tauri::command]
 pub async fn get_session_code_changes(
     project_path: String,

@@ -57,7 +57,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
       setCurrentConfig(configData);
     } catch (error) {
       console.error('Failed to load provider data:', error);
-      setToastMessage({ message: '加载代理商配置失败', type: 'error' });
+      setToastMessage({ message: 'Failed to load provider configuration', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
       await loadData(); // Refresh current config
     } catch (error) {
       console.error('Failed to switch provider:', error);
-      setToastMessage({ message: '切换代理商失败', type: 'error' });
+      setToastMessage({ message: 'Failed to switch provider', type: 'error' });
     } finally {
       setSwitching(null);
     }
@@ -85,7 +85,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
       await loadData(); // Refresh current config
     } catch (error) {
       console.error('Failed to clear provider:', error);
-      setToastMessage({ message: '清理配置失败', type: 'error' });
+      setToastMessage({ message: 'Failed to clear configuration', type: 'error' });
     } finally {
       setSwitching(null);
     }
@@ -98,7 +98,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
       setToastMessage({ message, type: 'success' });
     } catch (error) {
       console.error('Failed to test connection:', error);
-      setToastMessage({ message: '连接测试失败', type: 'error' });
+      setToastMessage({ message: 'Connection test failed', type: 'error' });
     } finally {
       setTesting(null);
     }
@@ -125,13 +125,13 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
     try {
       setDeleting(providerToDelete.id);
       await api.deleteProviderConfig(providerToDelete.id);
-      setToastMessage({ message: '代理商删除成功', type: 'success' });
+      setToastMessage({ message: 'Provider deleted successfully', type: 'success' });
       await loadData();
       setDeleteDialogOpen(false);
       setProviderToDelete(null);
     } catch (error) {
       console.error('Failed to delete provider:', error);
-      setToastMessage({ message: '删除代理商失败', type: 'error' });
+      setToastMessage({ message: 'Failed to delete provider', type: 'error' });
     } finally {
       setDeleting(null);
     }
@@ -148,28 +148,28 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
         const updatedConfig = { ...formData, id: editingProvider.id };
         await api.updateProviderConfig(updatedConfig);
         
-        // 如果编辑的是当前活跃的代理商，同步更新配置文件
+        // If editing the current active provider, sync the config file
         if (isCurrentProvider(editingProvider)) {
           try {
             await api.switchProviderConfig(updatedConfig);
-            setToastMessage({ message: '代理商更新成功，配置文件已同步更新', type: 'success' });
+            setToastMessage({ message: 'Provider updated and config file synced', type: 'success' });
           } catch (switchError) {
             console.error('Failed to sync provider config:', switchError);
-            setToastMessage({ message: '代理商更新成功，但配置文件同步失败', type: 'error' });
+            setToastMessage({ message: 'Provider updated, but failed to sync config file', type: 'error' });
           }
         } else {
-          setToastMessage({ message: '代理商更新成功', type: 'success' });
+          setToastMessage({ message: 'Provider updated successfully', type: 'success' });
         }
       } else {
         await api.addProviderConfig(formData);
-        setToastMessage({ message: '代理商添加成功', type: 'success' });
+        setToastMessage({ message: 'Provider added successfully', type: 'success' });
       }
       setShowForm(false);
       setEditingProvider(null);
       await loadData();
     } catch (error) {
       console.error('Failed to save provider:', error);
-      setToastMessage({ message: editingProvider ? '更新代理商失败' : '添加代理商失败', type: 'error' });
+      setToastMessage({ message: editingProvider ? 'Failed to update provider' : 'Failed to add provider', type: 'error' });
     }
   };
 
@@ -195,7 +195,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">正在加载代理商配置...</p>
+          <p className="text-sm text-muted-foreground">Loading provider configuration...</p>
         </div>
       </div>
     );
@@ -210,9 +210,9 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
             <Settings2 className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-lg font-semibold">代理商管理</h1>
+            <h1 className="text-lg font-semibold">Provider Management</h1>
             <p className="text-xs text-muted-foreground">
-              一键切换不同的 Claude API 代理商
+              One-click switch between different Claude API providers
             </p>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
             className="text-xs"
           >
             <Plus className="h-3 w-3 mr-1" />
-            添加代理商
+            Add Provider
           </Button>
           <Button
             variant="outline"
@@ -234,7 +234,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
             className="text-xs"
           >
             <Eye className="h-3 w-3 mr-1" />
-            查看当前配置
+            View Current Config
           </Button>
           <Button
             variant="destructive"
@@ -248,7 +248,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
             ) : (
               <Trash2 className="h-3 w-3 mr-1" />
             )}
-            清理配置
+            Clear Config
           </Button>
         </div>
       </div>
@@ -260,10 +260,10 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <Globe className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-sm text-muted-foreground mb-4">还没有配置任何代理商</p>
+                <p className="text-sm text-muted-foreground mb-4">No providers configured yet</p>
                 <Button onClick={handleAddProvider} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
-                  添加第一个代理商
+                  Add First Provider
                 </Button>
               </div>
             </div>
@@ -280,29 +280,29 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
                     {isCurrentProvider(config) && (
                       <Badge variant="secondary" className="text-xs">
                         <Check className="h-3 w-3 mr-1" />
-                        当前使用
+                        In Use
                       </Badge>
                     )}
                   </div>
                   
                   <div className="space-y-1 text-sm text-muted-foreground">
-                    <p><span className="font-medium">描述：</span>{config.description}</p>
-                    <p><span className="font-medium">API地址：</span>{config.base_url}</p>
+                    <p><span className="font-medium">Description: </span>{config.description}</p>
+                    <p><span className="font-medium">API URL: </span>{config.base_url}</p>
                     {config.auth_token && (
-                      <p><span className="font-medium">认证Token：</span>
+                      <p><span className="font-medium">Auth Token: </span>
                         {showTokens ? config.auth_token : maskToken(config.auth_token)}
                       </p>
                     )}
                     {config.api_key && (
-                      <p><span className="font-medium">API Key：</span>
+                      <p><span className="font-medium">API Key: </span>
                         {showTokens ? config.api_key : maskToken(config.api_key)}
                       </p>
                     )}
                     {config.model && (
-                      <p><span className="font-medium">模型：</span>{config.model}</p>
+                      <p><span className="font-medium">Model: </span>{config.model}</p>
                     )}
                     {config.api_key_helper && (
-                      <p><span className="font-medium">Key Helper：</span>
+                      <p><span className="font-medium">Key Helper: </span>
                         <code className="text-xs bg-muted px-1 py-0.5 rounded ml-1">
                           {config.api_key_helper.length > 50 ? 
                             config.api_key_helper.substring(0, 47) + '...' : 
@@ -362,7 +362,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
                     ) : (
                       <Check className="h-3 w-3 mr-1" />
                     )}
-                    {isCurrentProvider(config) ? '已选择' : '切换到此配置'}
+                    {isCurrentProvider(config) ? 'Selected' : 'Switch to this config'}
                   </Button>
                 </div>
               </div>
@@ -384,7 +384,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
               ) : (
                 <Eye className="h-3 w-3 mr-1" />
               )}
-              {showTokens ? '隐藏' : '显示'}Token
+              {showTokens ? 'Hide' : 'Show'} Token
             </Button>
           </div>
           )}
@@ -395,7 +395,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
       <Dialog open={showCurrentConfig} onOpenChange={setShowCurrentConfig}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>当前环境变量配置</DialogTitle>
+            <DialogTitle>Current Environment Variable Configuration</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {currentConfig ? (
@@ -440,7 +440,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
                       {currentConfig.anthropic_api_key_helper}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      这是一个命令，用于动态生成认证令牌
+                      This is a command used to dynamically generate authentication tokens
                     </p>
                   </div>
                 )}
@@ -458,7 +458,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
                     ) : (
                       <Eye className="h-3 w-3 mr-1" />
                     )}
-                    {showTokens ? '隐藏' : '显示'}Token
+                    {showTokens ? 'Hide' : 'Show'} Token
                   </Button>
                 </div>
               </div>
@@ -466,7 +466,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
               <div className="flex items-center justify-center py-8">
                 <div className="text-center">
                   <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">未检测到任何 ANTHROPIC 环境变量</p>
+                  <p className="text-sm text-muted-foreground">No ANTHROPIC environment variables detected</p>
                 </div>
               </div>
             )}
@@ -478,7 +478,7 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
       <Dialog open={showForm} onOpenChange={handleFormCancel}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingProvider ? '编辑代理商' : '添加代理商'}</DialogTitle>
+            <DialogTitle>{editingProvider ? 'Edit Provider' : 'Add Provider'}</DialogTitle>
           </DialogHeader>
           <ProviderForm
             initialData={editingProvider || undefined}
@@ -486,25 +486,25 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
             onCancel={handleFormCancel}
           />
         </DialogContent>
-      </Dialog>
+      </Dialog>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>确认删除代理商</DialogTitle>
+            <DialogTitle>Confirm Delete Provider</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <p>您确定要删除代理商 "{providerToDelete?.name}" 吗？</p>
+            <p>Are you sure you want to delete provider "{providerToDelete?.name}"?</p>
             {providerToDelete && (
               <div className="p-3 bg-muted rounded-md">
-                <p className="text-sm"><span className="font-medium">名称：</span>{providerToDelete.name}</p>
-                <p className="text-sm"><span className="font-medium">描述：</span>{providerToDelete.description}</p>
-                <p className="text-sm"><span className="font-medium">API地址：</span>{providerToDelete.base_url}</p>
+                <p className="text-sm"><span className="font-medium">Name: </span>{providerToDelete.name}</p>
+                <p className="text-sm"><span className="font-medium">Description: </span>{providerToDelete.description}</p>
+                <p className="text-sm"><span className="font-medium">API URL: </span>{providerToDelete.base_url}</p>
               </div>
             )}
             <p className="text-sm text-muted-foreground">
-              此操作无法撤销，代理商配置将被永久删除。
+              This action cannot be undone. The provider configuration will be permanently deleted.
             </p>
           </div>
           <div className="flex justify-end gap-2">
@@ -513,14 +513,14 @@ export default function ProviderManager({ onBack }: ProviderManagerProps) {
               onClick={cancelDeleteProvider}
               disabled={deleting === providerToDelete?.id}
             >
-              取消
+              Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={confirmDeleteProvider}
               disabled={deleting === providerToDelete?.id}
             >
-              {deleting === providerToDelete?.id ? '删除中...' : '确认删除'}
+              {deleting === providerToDelete?.id ? 'Deleting...' : 'Confirm Delete'}
             </Button>
           </div>
         </DialogContent>

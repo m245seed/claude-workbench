@@ -18,8 +18,8 @@ interface TabIndicatorProps {
 }
 
 /**
- * TabIndicator - 标签页状态指示器
- * 显示当前打开的标签页数量和状态，提供快速跳转功能
+ * TabIndicator - Tab status indicator
+ * Shows the number and status of currently opened tabs and provides quick navigation
  */
 export const TabIndicator: React.FC<TabIndicatorProps> = ({
   onViewTabs,
@@ -28,7 +28,7 @@ export const TabIndicator: React.FC<TabIndicatorProps> = ({
   const { getTabStats } = useTabs();
   const stats = getTabStats();
 
-  // 如果没有标签页，不显示指示器
+  // If there are no tabs, do not render the indicator
   if (stats.total === 0) {
     return null;
   }
@@ -41,17 +41,17 @@ export const TabIndicator: React.FC<TabIndicatorProps> = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
-          className={cn("flex items-center gap-2", className)}
+          className={cn('flex items-center gap-2', className)}
         >
-          {/* 标签页统计信息 */}
+          {/* Tab statistics */}
           <div className="flex items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
                   variant="secondary"
                   className={cn(
-                    "flex items-center gap-1 text-xs cursor-pointer transition-colors",
-                    stats.total > 0 && "hover:bg-primary/10"
+                    'flex items-center gap-1 text-xs cursor-pointer transition-colors',
+                    stats.total > 0 && 'hover:bg-primary/10'
                   )}
                   onClick={onViewTabs}
                 >
@@ -60,11 +60,11 @@ export const TabIndicator: React.FC<TabIndicatorProps> = ({
                 </Badge>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{stats.total} 个会话已打开</p>
+                <p>{stats.total} sessions opened</p>
               </TooltipContent>
             </Tooltip>
 
-            {/* 活跃会话指示器 */}
+            {/* Active session indicator */}
             {stats.active > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -77,12 +77,12 @@ export const TabIndicator: React.FC<TabIndicatorProps> = ({
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{stats.active} 个会话正在处理中</p>
+                  <p>{stats.active} sessions are processing</p>
                 </TooltipContent>
               </Tooltip>
             )}
 
-            {/* 未保存更改指示器 */}
+            {/* Unsaved changes indicator */}
             {stats.hasChanges > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -95,13 +95,13 @@ export const TabIndicator: React.FC<TabIndicatorProps> = ({
                   </Badge>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{stats.hasChanges} 个会话有未保存更改</p>
+                  <p>{stats.hasChanges} sessions have unsaved changes</p>
                 </TooltipContent>
               </Tooltip>
             )}
           </div>
 
-          {/* 查看标签页按钮 */}
+          {/* View tabs button */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -111,11 +111,11 @@ export const TabIndicator: React.FC<TabIndicatorProps> = ({
                 onClick={onViewTabs}
               >
                 <Eye className="h-3.5 w-3.5 mr-1" />
-                查看会话
+                View sessions
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>查看所有已打开的会话</p>
+              <p>View all opened sessions</p>
             </TooltipContent>
           </Tooltip>
         </motion.div>

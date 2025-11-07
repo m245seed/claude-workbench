@@ -1,9 +1,9 @@
 /**
- * ToolCallsGroup - 工具调用组组件（重构版）
+ * ToolCallsGroup - Tool Calls Group Component (Refactored Version)
  *
- * 基于工具注册中心的插件化架构
- * 支持批量管理工具调用，提供折叠/展开功能
- * 当工具数量 >= 3 时默认折叠，显示摘要信息
+ * Based on plugin architecture of tool registry
+ * Supports batch management of tool calls, provides collapse/expand functionality
+ * When tool count >= 3, collapse by default, display summary information
  */
 
 import React, { memo, useState, useMemo } from 'react';
@@ -22,22 +22,22 @@ interface ToolCall {
 }
 
 export interface ToolCallsGroupProps {
-  /** 消息数据 */
+  /** Message data */
   message: ClaudeStreamMessage;
 
-  /** 默认折叠状态 */
+  /** Default collapsed state */
   defaultCollapsed?: boolean;
 
-  /** 折叠阈值（工具数量 >= 此值时默认折叠） */
+  /** Collapse threshold (when tool count >= this value, collapse by default) */
   collapseThreshold?: number;
 
-  /** 折叠状态变化回调 */
+  /** Collapse state change callback */
   onToggle?: (collapsed: boolean) => void;
 
-  /** 链接检测回调 */
+  /** Link detection callback */
   onLinkDetected?: (url: string) => void;
 
-  /** 自定义类名 */
+  /** Custom class name */
   className?: string;
 }
 
@@ -126,7 +126,7 @@ export const ToolCallsGroup: React.FC<ToolCallsGroupProps> = ({
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
         <Wrench className="w-4 h-4 text-blue-500 shrink-0" />
-        <span className="font-medium text-sm">工具调用 ({stats.total})</span>
+        <span className="font-medium text-sm">Tool Calls ({stats.total})</span>
 
         {/* 状态徽章 */}
         <div className="flex items-center gap-2 ml-auto">
@@ -179,7 +179,7 @@ export const ToolCallsGroup: React.FC<ToolCallsGroupProps> = ({
 };
 
 /**
- * 折叠时的摘要显示
+ * Summary display when collapsed
  */
 interface CollapsedSummaryProps {
   toolCalls: ToolCall[];
@@ -218,16 +218,16 @@ const CollapsedSummary: React.FC<CollapsedSummaryProps> = ({ toolCalls, getStatu
       })}
 
       {toolCalls.length > 3 && (
-        <div className="text-xs text-muted-foreground pl-5">还有 {toolCalls.length - 3} 个工具...</div>
+        <div className="text-xs text-muted-foreground pl-5">There are {toolCalls.length - 3} more tools...</div>
       )}
 
-      <div className="text-[10px] text-muted-foreground/70 pt-1">点击展开查看详情</div>
+      <div className="text-[10px] text-muted-foreground/70 pt-1">Click to expand and view details</div>
     </div>
   );
 };
 
 /**
- * 单个工具调用渲染
+ * Single tool call rendering
  */
 interface SingleToolCallProps {
   tool: ToolCall;
@@ -294,7 +294,7 @@ const SingleToolCallComponent: React.FC<SingleToolCallProps> = ({ tool, result, 
           )}
         </div>
         <span className={cn('text-xs px-2 py-0.5 rounded', statusBg, statusColor)}>
-          {hasResult ? (isError ? '失败' : '成功') : '执行中'}
+          {hasResult ? (isError ? 'Failed' : 'Success') : 'Executing'}
         </span>
       </div>
 
@@ -315,7 +315,7 @@ SingleToolCallComponent.displayName = "SingleToolCall";
 const SingleToolCall = memo(SingleToolCallComponent);
 
 /**
- * 未注册工具的降级渲染
+ * Fallback rendering for unregistered tools
  */
 interface FallbackToolRenderProps {
   tool: ToolCall;
@@ -328,12 +328,12 @@ interface FallbackToolRenderProps {
 const FallbackToolRender: React.FC<FallbackToolRenderProps> = ({ tool, result }) => {
   return (
     <div className="fallback-tool-render space-y-2 text-xs">
-      <div className="text-muted-foreground">此工具尚未注册专用渲染器，显示原始数据：</div>
+      <div className="text-muted-foreground">This tool has not registered a dedicated renderer, displaying raw data:</div>
 
       {tool.input && Object.keys(tool.input).length > 0 && (
         <details className="text-xs">
           <summary className="cursor-pointer text-muted-foreground hover:text-foreground select-none">
-            输入参数
+            Input Parameters
           </summary>
           <pre className="mt-1 p-2 bg-muted rounded text-[10px] overflow-x-auto whitespace-pre-wrap">
             {JSON.stringify(tool.input, null, 2)}
@@ -343,7 +343,7 @@ const FallbackToolRender: React.FC<FallbackToolRenderProps> = ({ tool, result })
 
       {result && (
         <div className={cn('p-2 rounded', result.is_error ? 'bg-red-500/10' : 'bg-muted')}>
-          <div className="font-medium mb-1 text-xs">{result.is_error ? '执行失败' : '执行结果'}:</div>
+          <div className="font-medium mb-1 text-xs">{result.is_error ? 'Execution Failed' : 'Execution Result'}:</div>
           <pre className="text-[10px] overflow-x-auto whitespace-pre-wrap">
             {typeof result.content === 'string' ? result.content : JSON.stringify(result.content, null, 2)}
           </pre>

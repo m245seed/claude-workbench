@@ -35,7 +35,6 @@ interface EnhancedHooksManagerProps {
   projectPath?: string;
 }
 
-
 export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManagerProps) {
   const [hooksConfig, setHooksConfig] = useState<EnhancedHooksConfiguration>({});
   const [loading, setLoading] = useState(true);
@@ -58,6 +57,7 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
     loadHooksConfig();
   }, [projectPath]);
 
+  // Load hooks configuration and convert to Enhanced format
   const loadHooksConfig = async () => {
     try {
       setLoading(true);
@@ -67,7 +67,6 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
         ? await api.getMergedHooksConfig(projectPath)
         : await api.getHooksConfig('user');
 
-      // 转换为Enhanced格式
       const enhancedConfig = convertToEnhanced(config);
       setHooksConfig(enhancedConfig);
     } catch (err) {
@@ -78,6 +77,7 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
     }
   };
 
+  // Save hooks configuration after converting back to original format
   const saveHooksConfig = async () => {
     if (!modified) return;
 
@@ -85,7 +85,6 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
       setSaving(true);
       setError(null);
 
-      // 转换为原始格式进行保存
       const originalConfig = convertFromEnhanced(hooksConfig);
       const scope = projectPath ? 'local' : 'user';
       await api.updateHooksConfig(scope, originalConfig, projectPath);
@@ -136,7 +135,7 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
                 <Zap className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <p className="text-2xl font-bold">{stats.totalEvents}</p>
-                  <p className="text-xs text-muted-foreground">活跃事件类型</p>
+                  <p className="text-xs text-muted-foreground">Active Event Types</p>
                 </div>
               </div>
             </CardContent>
@@ -148,7 +147,7 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
                 <Layers className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <p className="text-2xl font-bold">{stats.totalHooks}</p>
-                  <p className="text-xs text-muted-foreground">配置的Hooks</p>
+                  <p className="text-xs text-muted-foreground">Configured Hooks</p>
                 </div>
               </div>
             </CardContent>
@@ -159,8 +158,8 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
               <div className="flex items-center space-x-2">
                 <Settings className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="text-2xl font-bold">{projectPath ? '项目' : '用户'}</p>
-                  <p className="text-xs text-muted-foreground">配置作用域</p>
+                  <p className="text-2xl font-bold">{projectPath ? 'Project' : 'User'}</p>
+                  <p className="text-xs text-muted-foreground">Configuration Scope</p>
                 </div>
               </div>
             </CardContent>
@@ -169,9 +168,9 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
 
         <Card>
           <CardHeader>
-            <CardTitle>快速操作</CardTitle>
+            <CardTitle>Quick Actions</CardTitle>
             <CardDescription>
-              常用的Hooks管理操作
+              Common Hook management operations
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -183,8 +182,8 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
               >
                 <Play className="h-4 w-4 mr-3" />
                 <div className="text-left">
-                  <div className="font-medium">测试Hooks</div>
-                  <div className="text-xs text-muted-foreground">测试Hook事件执行</div>
+                  <div className="font-medium">Test Hooks</div>
+                  <div className="text-xs text-muted-foreground">Execute Hook event tests</div>
                 </div>
               </Button>
 
@@ -195,8 +194,8 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
               >
                 <Settings className="h-4 w-4 mr-3" />
                 <div className="text-left">
-                  <div className="font-medium">编辑配置</div>
-                  <div className="text-xs text-muted-foreground">功能开发中</div>
+                  <div className="font-medium">Edit Configuration</div>
+                  <div className="text-xs text-muted-foreground">Feature in development</div>
                 </div>
               </Button>
             </div>
@@ -212,55 +211,55 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Play className="h-5 w-5" />
-            <span>Hook事件测试</span>
+            <span>Hook Event Testing</span>
           </CardTitle>
           <CardDescription>
-            测试Hook事件的执行效果和链式处理
+            Test the execution and chaining of Hook events
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>选择事件类型</Label>
+              <Label>Select Event Type</Label>
               <Select
                 value={testEvent || undefined}
                 onValueChange={(value) => setTestEvent(value as HookEvent)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="选择要测试的Hook事件" />
+                  <SelectValue placeholder="Select a Hook event to test" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PreToolUse">PreToolUse - 工具使用前</SelectItem>
-                  <SelectItem value="PostToolUse">PostToolUse - 工具使用后</SelectItem>
-                  <SelectItem value="OnContextCompact">OnContextCompact - 上下文压缩</SelectItem>
-                  <SelectItem value="OnSessionStart">OnSessionStart - 会话开始</SelectItem>
-                  <SelectItem value="OnSessionEnd">OnSessionEnd - 会话结束</SelectItem>
+                  <SelectItem value="PreToolUse">PreToolUse – Before tool use</SelectItem>
+                  <SelectItem value="PostToolUse">PostToolUse – After tool use</SelectItem>
+                  <SelectItem value="OnContextCompact">OnContextCompact – Context compression</SelectItem>
+                  <SelectItem value="OnSessionStart">OnSessionStart – Session start</SelectItem>
+                  <SelectItem value="OnSessionEnd">OnSessionEnd – Session end</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>会话ID</Label>
+              <Label>Session ID</Label>
               <Input
                 value={testContext.session_id}
                 onChange={(e) => setTestContext({
                   ...testContext,
                   session_id: e.target.value
                 })}
-                placeholder="测试会话ID"
+                placeholder="Test session ID"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>项目路径</Label>
+            <Label>Project Path</Label>
             <Input
               value={testContext.project_path}
               onChange={(e) => setTestContext({
                 ...testContext,
                 project_path: e.target.value
               })}
-              placeholder="项目路径"
+              placeholder="Project path"
             />
           </div>
 
@@ -274,7 +273,7 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
             ) : (
               <Play className="h-4 w-4 mr-2" />
             )}
-            执行测试
+            Run Test
           </Button>
 
           <AnimatePresence>
@@ -291,9 +290,9 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
                       <Terminal className="h-5 w-5" />
-                      <span>执行结果</span>
+                      <span>Execution Result</span>
                       <Badge variant={testResult.should_continue ? "default" : "destructive"}>
-                        {testResult.should_continue ? '允许继续' : '阻止操作'}
+                        {testResult.should_continue ? 'Continue Allowed' : 'Operation Blocked'}
                       </Badge>
                     </CardTitle>
                   </CardHeader>
@@ -301,21 +300,21 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <p className="text-2xl font-bold text-green-600">{testResult.successful}</p>
-                        <p className="text-xs text-muted-foreground">成功</p>
+                        <p className="text-xs text-muted-foreground">Success</p>
                       </div>
                       <div>
                         <p className="text-2xl font-bold text-red-600">{testResult.failed}</p>
-                        <p className="text-xs text-muted-foreground">失败</p>
+                        <p className="text-xs text-muted-foreground">Failed</p>
                       </div>
                       <div>
                         <p className="text-2xl font-bold">{testResult.total_hooks}</p>
-                        <p className="text-xs text-muted-foreground">总计</p>
+                        <p className="text-xs text-muted-foreground">Total</p>
                       </div>
                     </div>
 
                     {testResult.results.length > 0 && (
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium">执行详情</Label>
+                        <Label className="text-sm font-medium">Execution Details</Label>
                         <div className="space-y-2 max-h-60 overflow-y-auto">
                           {testResult.results.map((result, index) => (
                             <div
@@ -367,7 +366,7 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <Clock className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">正在加载Hooks配置...</p>
+          <p className="text-sm text-muted-foreground">Loading Hooks configuration...</p>
         </div>
       </div>
     );
@@ -388,7 +387,7 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
               onClick={onBack}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              返回
+              Back
             </Button>
 
             {modified && (
@@ -398,15 +397,15 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
                 ) : (
                   <Save className="h-4 w-4 mr-2" />
                 )}
-                保存配置
+                Save Configuration
               </Button>
             )}
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">增强型Hooks自动化</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Enhanced Hooks Automation</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              配置基于事件的智能自动化工作流，支持链式执行和条件触发
+              Configure event‑driven intelligent automation workflows with chaining and conditional triggers
             </p>
           </div>
         </motion.div>
@@ -422,11 +421,11 @@ export function EnhancedHooksManager({ onBack, projectPath }: EnhancedHooksManag
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <Info className="h-4 w-4" />
-              <span>概览</span>
+              <span>Overview</span>
             </TabsTrigger>
             <TabsTrigger value="testing" className="flex items-center space-x-2">
               <Play className="h-4 w-4" />
-              <span>测试</span>
+              <span>Testing</span>
             </TabsTrigger>
           </TabsList>
 

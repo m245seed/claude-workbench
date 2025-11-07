@@ -26,25 +26,25 @@ import {
 import { cn } from '@/lib/utils';
 import { TabSessionWrapper } from './TabSessionWrapper';
 import { useTabs } from '@/hooks/useTabs';
-import { useSessionSync } from '@/hooks/useSessionSync'; // 🔧 NEW: 会话状态同步
+import { useSessionSync } from '@/hooks/useSessionSync'; // 🔧 NEW: Session state sync
 import type { Session } from '@/lib/api';
 
 interface TabManagerProps {
   onBack: () => void;
   className?: string;
   /**
-   * 初始会话信息 - 从 SessionList 跳转时使用
+   * Initial session info – used when navigating from SessionList
    */
   initialSession?: Session;
   /**
-   * 初始项目路径 - 创建新会话时使用
+   * Initial project path – used when creating a new session
    */
   initialProjectPath?: string;
 }
 
 /**
- * TabManager - 多标签页会话管理器
- * 支持多个 Claude Code 会话同时运行，后台保持状态
+ * TabManager – multi‑tab session manager
+ * Supports multiple Claude Code sessions running concurrently, keeping state in the background
  */
 export const TabManager: React.FC<TabManagerProps> = ({
   onBack,
@@ -58,43 +58,43 @@ export const TabManager: React.FC<TabManagerProps> = ({
     switchToTab,
     closeTab,
     updateTabStreamingStatus,
-    reorderTabs, // 🔧 NEW: 拖拽排序
+    reorderTabs, // 🔧 NEW: drag‑and‑drop reorder
   } = useTabs();
 
-  // 🔧 NEW: 启用会话状态同步
+  // 🔧 NEW: enable session state sync
   useSessionSync();
 
   const [draggedTab, setDraggedTab] = useState<string | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null); // 🔧 NEW: 拖拽悬停的位置
-  const [tabToClose, setTabToClose] = useState<string | null>(null); // 🔧 NEW: 待关闭的标签页ID（需要确认）
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null); // 🔧 NEW: drag‑over position
+  const [tabToClose, setTabToClose] = useState<string | null>(null); // 🔧 NEW: tab ID awaiting confirmation
   const tabsContainerRef = useRef<HTMLDivElement>(null);
 
   // ✨ Phase 3: Simple initialization flag (no complex state machine)
   const initializedRef = useRef(false);
 
-  // 拖拽处理
+  // Drag handling
   const handleTabDragStart = useCallback((tabId: string) => {
     setDraggedTab(tabId);
   }, []);
 
   const handleTabDragEnd = useCallback(() => {
     setDraggedTab(null);
-    setDragOverIndex(null); // 🔧 NEW: 清除拖拽悬停状态
+    setDragOverIndex(null); // 🔧 NEW: clear drag‑over state
   }, []);
 
-  // 🔧 NEW: 拖拽悬停处理 - 计算drop位置
+  // 🔧 NEW: drag‑over handling – calculate drop position
   const handleTabDragOver = useCallback((e: React.DragEvent, index: number) => {
-    e.preventDefault(); // 必须阻止默认行为以允许drop
+    e.preventDefault(); // must prevent default to allow drop
     setDragOverIndex(index);
   }, []);
 
-  // 🔧 NEW: 拖拽放置处理 - 执行重排序
+  // 🔧 NEW: drop handling – perform reorder
   const handleTabDrop = useCallback((e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
 
     if (!draggedTab) return;
 
-    // 查找被拖拽标签页的索���
+    // Find the index of the dragged tab
     const fromIndex = tabs.findIndex(t => t.id === draggedTab);
     if (fromIndex === -1 || fromIndex === targetIndex) {
       setDraggedTab(null);
@@ -102,23 +102,23 @@ export const TabManager: React.FC<TabManagerProps> = ({
       return;
     }
 
-    // 执行重排序
+    // Perform reorder
     reorderTabs(fromIndex, targetIndex);
     setDraggedTab(null);
     setDragOverIndex(null);
   }, [draggedTab, tabs, reorderTabs]);
 
-  // 🔧 NEW: 处理标签页关闭（支持确认Dialog）
+  // 🔧 NEW: handle tab close (supports confirmation dialog)
   const handleCloseTab = useCallback(async (tabId: string, force = false) => {
     const result = await closeTab(tabId, force);
 
-    // 如果需要确认，显示Dialog
+    // If confirmation is needed, show dialog
     if (result && typeof result === 'object' && 'needsConfirmation' in result && result.needsConfirmation) {
       setTabToClose(result.tabId || null);
     }
   }, [closeTab]);
 
-  // 🔧 NEW: 确认关闭标签页
+  // 🔧 NEW: confirm tab close
   const confirmCloseTab = useCallback(async () => {
     if (tabToClose) {
       await closeTab(tabToClose, true); // force close
@@ -132,7 +132,7 @@ export const TabManager: React.FC<TabManagerProps> = ({
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    // 🔧 修复：新建操作应该覆盖已保存的标签页
+    // 🔧 Fix: new operation should overwrite any saved tabs
     const isNewOperation = initialSession || initialProjectPath;
 
     // Priority 1: Initial session provided (highest priority)
@@ -155,17 +155,17 @@ export const TabManager: React.FC<TabManagerProps> = ({
       return;
     }
 
-    // Priority 4: No initial data - show empty state
+    // Priority 4: No initial data – show empty state
     console.log('[TabManager] No initial data, showing empty state');
-  }, []); // Empty deps - only run once on mount
+  }, []); // Empty deps – only run once on mount
 
   return (
     <TooltipProvider>
       <div className={cn("h-full flex flex-col bg-background", className)}>
-        {/* 🎨 极简标签页栏 */}
+        {/* 🎨 Minimal tab bar */}
         <div className="flex-shrink-0 border-b border-border bg-background">
           <div className="flex items-center h-12 px-4 gap-2">
-            {/* 返回按钮 */}
+            {/* Back button */}
             <Button
               variant="ghost"
               size="sm"
@@ -173,13 +173,13 @@ export const TabManager: React.FC<TabManagerProps> = ({
               className="px-3"
             >
               <ArrowLeft className="h-4 w-4 mr-1.5" />
-              <span>返回</span>
+              <span>Back</span>
             </Button>
 
-            {/* 分隔线 */}
+            {/* Separator */}
             <div className="h-4 w-px bg-border" />
 
-            {/* 标签页容器 */}
+            {/* Tab container */}
             <div
               ref={tabsContainerRef}
               className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-thin"
@@ -210,7 +210,7 @@ export const TabManager: React.FC<TabManagerProps> = ({
                         onDragOver={(e) => handleTabDragOver(e, index)}
                         onDrop={(e) => handleTabDrop(e, index)}
                       >
-                        {/* 会话状态指示器 - 极简 */}
+                        {/* Session status indicator – minimal */}
                         <div className="flex-shrink-0">
                           {tab.state === 'streaming' ? (
                             <motion.div
@@ -223,12 +223,12 @@ export const TabManager: React.FC<TabManagerProps> = ({
                           ) : null}
                         </div>
 
-                        {/* 标签页标题 */}
+                        {/* Tab title */}
                         <span className="flex-1 truncate text-sm">
                           {tab.title}
                         </span>
 
-                        {/* 关闭按钮 - 仅在 hover 时显示 */}
+                        {/* Close button – visible on hover */}
                         <button
                           className={cn(
                             "flex-shrink-0 h-5 w-5 rounded flex items-center justify-center",
@@ -250,19 +250,19 @@ export const TabManager: React.FC<TabManagerProps> = ({
                         {tab.session && (
                           <>
                             <div className="text-muted-foreground">
-                              会话 ID: {tab.session.id}
+                              Session ID: {tab.session.id}
                             </div>
                             <div className="text-muted-foreground">
-                              项目: {tab.projectPath || tab.session.project_path}
+                              Project: {tab.projectPath || tab.session.project_path}
                             </div>
                             <div className="text-muted-foreground">
-                              创建时间: {new Date(tab.session.created_at * 1000).toLocaleString('zh-CN')}
+                              Created At: {new Date(tab.session.created_at * 1000).toLocaleString('en-US')}
                             </div>
                           </>
                         )}
                         {!tab.session && tab.projectPath && (
                           <div className="text-muted-foreground">
-                            项目: {tab.projectPath}
+                            Project: {tab.projectPath}
                           </div>
                         )}
                       </div>
@@ -271,7 +271,7 @@ export const TabManager: React.FC<TabManagerProps> = ({
                 ))}
               </AnimatePresence>
 
-              {/* 新建标签页按钮 */}
+              {/* New tab button */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -281,14 +281,14 @@ export const TabManager: React.FC<TabManagerProps> = ({
                     <Plus className="h-4 w-4" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>新建会话</TooltipContent>
+                <TooltipContent>New Session</TooltipContent>
               </Tooltip>
             </div>
 
-            {/* 分隔线 */}
+            {/* Separator */}
             <div className="h-4 w-px bg-border" />
 
-            {/* 标签页菜单 */}
+            {/* Tab menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="h-7 w-7 rounded flex items-center justify-center hover:bg-muted transition-colors">
@@ -298,30 +298,30 @@ export const TabManager: React.FC<TabManagerProps> = ({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => createNewTab()}>
                   <Plus className="h-4 w-4 mr-2" />
-                  新建会话
+                  New Session
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => tabs.forEach(tab => closeTab(tab.id, true))}
                   disabled={tabs.length === 0}
                 >
-                  关闭所有标签页
+                  Close All Tabs
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => tabs.filter(tab => !tab.isActive).forEach(tab => closeTab(tab.id, true))}
                   disabled={tabs.length <= 1}
                 >
-                  关闭其他标签页
+                  Close Other Tabs
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
 
-        {/* 标签页内容区域 */}
+        {/* Tab content area */}
         <div className="flex-1 relative overflow-hidden">
-          {/* 🔧 STATE PRESERVATION: 渲染所有标签页但隐藏非活跃标签页 */}
-          {/* 这样可以保持组件状态（包括输入框内容），避免切换标签页时状态丢失 */}
+          {/* 🔧 STATE PRESERVATION: render all tabs but hide inactive ones */}
+          {/* This keeps component state (including input values) when switching tabs */}
           {tabs.map((tab) => {
             return (
               <div
@@ -344,7 +344,7 @@ export const TabManager: React.FC<TabManagerProps> = ({
             );
           })}
 
-          {/* 🎨 现代化空状态设计 */}
+          {/* 🎨 Modern empty state design */}
           {tabs.length === 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -353,7 +353,7 @@ export const TabManager: React.FC<TabManagerProps> = ({
               className="flex items-center justify-center h-full"
             >
               <div className="text-center max-w-md px-8">
-                {/* 图标 */}
+                {/* Icon */}
                 <motion.div
                   initial={{ y: -20 }}
                   animate={{ y: 0 }}
@@ -370,7 +370,7 @@ export const TabManager: React.FC<TabManagerProps> = ({
                   </div>
                 </motion.div>
 
-                {/* 标题和描述 */}
+                {/* Title and description */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -378,14 +378,14 @@ export const TabManager: React.FC<TabManagerProps> = ({
                   className="mb-8"
                 >
                   <h3 className="text-2xl font-bold mb-3 text-foreground">
-                    暂无活跃会话
+                    No Active Sessions
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    所有标签页已关闭。创建新会话开始工作，或返回主界面查看项目。
+                    All tabs are closed. Create a new session to start working, or return to the main interface to view projects.
                   </p>
                 </motion.div>
 
-                {/* 操作按钮 */}
+                {/* Action buttons */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -398,7 +398,7 @@ export const TabManager: React.FC<TabManagerProps> = ({
                     className="w-full shadow-md hover:shadow-lg"
                   >
                     <Plus className="h-5 w-5 mr-2" />
-                    创建新会话
+                    Create New Session
                   </Button>
                   <Button
                     size="lg"
@@ -407,7 +407,7 @@ export const TabManager: React.FC<TabManagerProps> = ({
                     className="w-full"
                   >
                     <ArrowLeft className="h-5 w-5 mr-2" />
-                    返回主界面
+                    Return to Main Interface
                   </Button>
                 </motion.div>
               </div>
@@ -415,21 +415,21 @@ export const TabManager: React.FC<TabManagerProps> = ({
           )}
         </div>
 
-        {/* 🔧 NEW: 自定义关闭确认Dialog */}
+        {/* 🔧 NEW: custom close‑confirmation dialog */}
         <Dialog open={tabToClose !== null} onOpenChange={(open) => !open && setTabToClose(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>确认关闭标签页</DialogTitle>
+              <DialogTitle>Confirm Close Tab</DialogTitle>
               <DialogDescription>
-                此会话有未保存的更改，确定要关闭吗？关闭后更改将丢失。
+                This session has unsaved changes. Are you sure you want to close? Changes will be lost after closing.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button variant="outline" onClick={() => setTabToClose(null)}>
-                取消
+                Cancel
               </Button>
               <Button variant="destructive" onClick={confirmCloseTab}>
-                确认关闭
+                Confirm Close
               </Button>
             </DialogFooter>
           </DialogContent>

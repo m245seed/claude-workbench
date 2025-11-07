@@ -171,7 +171,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             className="text-xs font-medium px-2 py-1 h-7 hover:bg-muted/70 transition-all rounded-md gap-0 border border-border/40 shadow-sm hover:shadow"
           >
             <Package className="h-3.5 w-3.5" strokeWidth={2} />
-            扩展
+            {t('navigation.extensions')}
           </Button>
         )}
 
@@ -188,7 +188,7 @@ export const Topbar: React.FC<TopbarProps> = ({
               className="text-xs font-medium px-2 py-1 h-7 hover:bg-muted/70 transition-all rounded-md gap-0 border border-border/40 shadow-sm hover:shadow"
             >
               <Eye className="h-3.5 w-3.5" strokeWidth={2} />
-              查看会话
+              {t('navigation.viewSession')}
               {tabsCount > 0 && <span className="ml-1 text-xs">({tabsCount})</span>}
             </Button>
 

@@ -11,6 +11,7 @@ export interface UseToolResultsReturn {
   getStatusById: (toolUseId?: string | null) => ToolStatus;
 }
 
+// Tool results hook
 export const useToolResults = (): UseToolResultsReturn => {
   const { toolResults } = useMessagesContext();
 

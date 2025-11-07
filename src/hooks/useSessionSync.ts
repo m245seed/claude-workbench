@@ -5,14 +5,14 @@ import { listen } from '@tauri-apps/api/event';
 /**
  * ✨ REFACTORED: useSessionSync - Event-driven session state sync (Phase 2)
  *
- * 改进前：每5秒轮询一次 (5000ms延迟)
- * 改进后：实时事件驱动 (<100ms延迟)
+ * Before improvement: Polled every 5 seconds (5000ms delay)
+ * After improvement: Real-time event-driven (<100ms delay)
  *
- * 功能：
- * - 监听 claude-session-state 事件
- * - 实时更新标签页状态 (started/stopped)
- * - 无需轮询，性能提升98%
- * - 自动错误处理和降级
+ * Features:
+ * - Listen to claude-session-state events
+ * - Real-time update of tab status (started/stopped)
+ * - No polling required, 98% performance boost
+ * - Automatic error handling and fallback
  */
 export const useSessionSync = () => {
   const { tabs, updateTabStreamingStatus } = useTabs();

@@ -1,35 +1,35 @@
 use log::{debug, error, info, warn};
-/// 增强型Hooks自动化系统
+/// Enhanced Hooks Automation System
 ///
-/// 这个模块实现了事件驱动的自动化工作流系统，包括：
-/// - 新的hooks事件类型（on-context-compact, on-agent-switch等）
-/// - Hooks链式执行和条件触发
-/// - 与现有组件深度集成（AutoCompactManager等）
-/// - 错误处理和回滚机制
+/// This module implements an event‑driven automation workflow system, including:
+/// - New hook event types (on‑context‑compact, on‑agent‑switch, etc.)
+/// - Hook chain execution and conditional triggering
+/// - Deep integration with existing components (AutoCompactManager, etc.)
+/// - Error handling and rollback mechanisms
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter};
 use tokio::process::Command;
 
-/// 扩展的Hook事件类型
+/// Extended hook event types
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "PascalCase")]
 pub enum HookEvent {
-    // 现有事件
+    // Existing events
     PreToolUse,
     PostToolUse,
     Notification,
     Stop,
     SubagentStop,
 
-    // 新增事件
-    OnContextCompact, // 上下文压缩时触发
-    OnAgentSwitch,    // 切换子代理时触发
-    OnFileChange,     // 文件修改时触发
-    OnSessionStart,   // 会话开始时触发
-    OnSessionEnd,     // 会话结束时触发
-    OnTabSwitch,      // 切换标签页时触发
+    // New events
+    OnContextCompact, // Triggered when context compression occurs
+    OnAgentSwitch,    // Triggered when switching sub‑agents
+    OnFileChange,     // Triggered on file modification
+    OnSessionStart,   // Triggered at the start of a session
+    OnSessionEnd,     // Triggered at the end of a session
+    OnTabSwitch,      // Triggered when switching tabs
 }
 
 impl HookEvent {
@@ -50,16 +50,16 @@ impl HookEvent {
     }
 }
 
-/// Hook执行上下文
+/// Hook execution context
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HookContext {
     pub event: String,
     pub session_id: String,
     pub project_path: String,
-    pub data: serde_json::Value, // 事件特定数据
+    pub data: serde_json::Value, // Event‑specific data
 }
 
-/// Hook执行结果
+/// Hook execution result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HookExecutionResult {
     pub success: bool,
@@ -69,7 +69,7 @@ pub struct HookExecutionResult {
     pub hook_command: String,
 }
 
-/// Hook链执行结果
+/// Hook chain execution result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HookChainResult {
     pub event: String,
@@ -77,29 +77,29 @@ pub struct HookChainResult {
     pub successful: usize,
     pub failed: usize,
     pub results: Vec<HookExecutionResult>,
-    pub should_continue: bool, // 是否应该继续后续操作
+    pub should_continue: bool, // Whether subsequent operations should proceed
 }
 
-/// 条件触发配置
+/// Conditional trigger configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConditionalTrigger {
-    pub condition: String, // 条件表达式
+    pub condition: String, // Condition expression
     pub enabled: bool,
-    pub priority: Option<i32>, // 执行优先级
+    pub priority: Option<i32>, // Execution priority
 }
 
-/// 增强型Hook定义
+/// Enhanced hook definition
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnhancedHook {
     pub command: String,
     pub timeout: Option<u64>,
     pub retry: Option<u32>,
     pub condition: Option<ConditionalTrigger>,
-    pub on_success: Option<Vec<String>>, // 成功后执行的命令
-    pub on_failure: Option<Vec<String>>, // 失败后执行的命令
+    pub on_success: Option<Vec<String>>, // Commands to run on success
+    pub on_failure: Option<Vec<String>>, // Commands to run on failure
 }
 
-/// Hook执行器
+/// Hook executor
 pub struct HookExecutor {
     app: AppHandle,
 }
@@ -109,7 +109,7 @@ impl HookExecutor {
         Self { app }
     }
 
-    /// 执行单个hook
+    /// Execute a single hook
     pub async fn execute_hook(
         &self,
         hook: &EnhancedHook,
@@ -117,7 +117,7 @@ impl HookExecutor {
     ) -> Result<HookExecutionResult, String> {
         let start_time = std::time::Instant::now();
 
-        // 检查条件是否满足
+        // Check if the condition is met
         if let Some(condition) = &hook.condition {
             if condition.enabled && !self.evaluate_condition(&condition.condition, context)? {
                 debug!("Hook condition not met, skipping execution");
@@ -131,34 +131,34 @@ impl HookExecutor {
             }
         }
 
-        // 准备执行环境
+        // Prepare execution environment
         let context_json = serde_json::to_string(context).map_err(|e| e.to_string())?;
 
-        // 执行命令
+        // Execute command
         let mut retry_count = 0;
         let max_retries = hook.retry.unwrap_or(0);
 
         loop {
-        let mut cmd = Command::new("bash");
-        cmd.arg("-c")
-            .arg(&hook.command)
-            .stdin(std::process::Stdio::piped())
-            .stdout(std::process::Stdio::piped())
-            .stderr(std::process::Stdio::piped())
-            .env("HOOK_CONTEXT", &context_json)
-            .env("HOOK_EVENT", &context.event)
-            .env("SESSION_ID", &context.session_id)
-            .env("PROJECT_PATH", &context.project_path);
+            let mut cmd = Command::new("bash");
+            cmd.arg("-c")
+                .arg(&hook.command)
+                .stdin(std::process::Stdio::piped())
+                .stdout(std::process::Stdio::piped())
+                .stderr(std::process::Stdio::piped())
+                .env("HOOK_CONTEXT", &context_json)
+                .env("HOOK_EVENT", &context.event)
+                .env("SESSION_ID", &context.session_id)
+                .env("PROJECT_PATH", &context.project_path);
 
-        #[cfg(target_os = "windows")]
-        {
-            cmd.creation_flags(0x08000000);
-        }
+            #[cfg(target_os = "windows")]
+            {
+                cmd.creation_flags(0x08000000);
+            }
 
-            // 设置超时
+            // Set timeout
             let timeout_duration = tokio::time::Duration::from_secs(hook.timeout.unwrap_or(30));
 
-            // 生成进程并设置超时
+            // Spawn process and apply timeout
             let child = cmd
                 .spawn()
                 .map_err(|e| format!("Failed to spawn hook process: {}", e))?;
@@ -173,7 +173,7 @@ impl HookExecutor {
             if result.status.success() {
                 let output = String::from_utf8_lossy(&result.stdout).to_string();
 
-                // 执行成功后的钩子
+                // Hooks after successful execution
                 if let Some(on_success_commands) = &hook.on_success {
                     for cmd in on_success_commands {
                         let _ = self.execute_simple_command(cmd, context).await;
@@ -188,7 +188,7 @@ impl HookExecutor {
                     hook_command: hook.command.clone(),
                 });
             } else {
-                // 失败处理
+                // Failure handling
                 let error_output = String::from_utf8_lossy(&result.stderr).to_string();
 
                 if retry_count < max_retries {
@@ -202,7 +202,7 @@ impl HookExecutor {
                     continue;
                 }
 
-                // 执行失败后的钩子
+                // Hooks after failure
                 if let Some(on_failure_commands) = &hook.on_failure {
                     for cmd in on_failure_commands {
                         let _ = self.execute_simple_command(cmd, context).await;
@@ -220,7 +220,7 @@ impl HookExecutor {
         }
     }
 
-    /// 执行Hook链
+    /// Execute a hook chain
     pub async fn execute_hook_chain(
         &self,
         event: HookEvent,
@@ -252,7 +252,7 @@ impl HookExecutor {
                         successful += 1;
                     } else {
                         failed += 1;
-                        // 如果是PreToolUse事件且hook失败，则阻止后续操作
+                        // If this is a PreToolUse event and the hook fails, block subsequent operations
                         if matches!(event, HookEvent::PreToolUse) {
                             should_continue = false;
                             warn!("PreToolUse hook failed, blocking operation");
@@ -274,7 +274,7 @@ impl HookExecutor {
             }
         }
 
-        // 发送执行结果事件
+        // Emit execution result event
         let _ = self.app.emit(
             &format!("hook-chain-complete:{}", context.session_id),
             &results,
@@ -290,7 +290,7 @@ impl HookExecutor {
         })
     }
 
-    /// 执行简单命令（用于on_success和on_failure）
+    /// Execute a simple command (used for on_success and on_failure)
     async fn execute_simple_command(
         &self,
         command: &str,
@@ -316,15 +316,15 @@ impl HookExecutor {
         Ok(())
     }
 
-    /// 评估条件表达式
+    /// Evaluate a condition expression
     fn evaluate_condition(&self, condition: &str, context: &HookContext) -> Result<bool, String> {
-        // 简单的条件评估实现
-        // 支持的格式：
+        // Simple condition evaluation implementation
+        // Supported formats:
         // - "session_id == 'xyz'"
         // - "data.tokens > 100000"
         // - "event == 'OnContextCompact'"
 
-        // 这里使用简单的字符串匹配，未来可以集成更强大的表达式引擎
+        // This uses basic string matching; a more powerful expression engine can be integrated later
         if condition.contains("==") {
             let parts: Vec<&str> = condition.split("==").collect();
             if parts.len() == 2 {
@@ -340,15 +340,15 @@ impl HookExecutor {
                 Ok(false)
             }
         } else {
-            // 默认返回true
+            // Default to true for unsupported expressions
             Ok(true)
         }
     }
 }
 
-// ============ Hook事件触发器 ============
+// ============ Hook Event Triggerer ============
 
-/// Hook管理器 - 管理hooks的注册和触发，保留用于未来扩展
+/// Hook manager – manages registration and triggering of hooks, retained for future extensions
 #[allow(dead_code)]
 pub struct HookManager {
     executor: Arc<HookExecutor>,
@@ -364,13 +364,13 @@ impl HookManager {
         }
     }
 
-    /// 注册Hook
+    /// Register hooks
     pub fn register_hooks(&self, event: HookEvent, hooks: Vec<EnhancedHook>) {
         let mut registered = self.registered_hooks.lock().unwrap();
         registered.insert(event.as_str().to_string(), hooks);
     }
 
-    /// 触发Hook事件
+    /// Trigger a hook event
     pub async fn trigger(
         &self,
         event: HookEvent,
@@ -401,7 +401,7 @@ impl HookManager {
 
 // ============ Tauri Commands ============
 
-/// 触发Hook事件
+/// Trigger a hook event
 #[tauri::command]
 pub async fn trigger_hook_event(
     app: AppHandle,
@@ -418,7 +418,7 @@ pub async fn trigger_hook_event(
         _ => return Err(format!("Unknown hook event: {}", event)),
     };
 
-    // 从配置中加载hooks
+    // Load hooks from configuration
     let hooks_config = crate::commands::claude::get_hooks_config(
         "project".to_string(),
         Some(context.project_path.clone()),
@@ -441,7 +441,7 @@ pub async fn trigger_hook_event(
         .await
 }
 
-/// 测试Hook条件
+/// Test a hook condition
 #[tauri::command]
 pub async fn test_hook_condition(
     app: tauri::AppHandle,
@@ -452,19 +452,19 @@ pub async fn test_hook_condition(
     executor.evaluate_condition(&condition, &context)
 }
 
-// ============ 智能化自动化场景实现 ============
+// ============ Intelligent Automation Scenario Implementation ============
 
-/// 提交前代码审查Hook配置
+/// Pre‑commit code review hook configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PreCommitCodeReviewConfig {
-    pub enabled: bool,
-    pub quality_threshold: f64,        // 最低质量分数阈值 (0.0-10.0)
-    pub block_critical_issues: bool,   // 是否阻止严重问题
-    pub block_major_issues: bool,      // 是否阻止重要问题
-    pub review_scope: String,          // "security", "performance", "all"
-    pub exclude_patterns: Vec<String>, // 排除的文件模式
-    pub max_files_to_review: usize,    // 最大审查文件数量
-    pub show_suggestions: bool,        // 是否显示改进建议
+    pub enabled: bool,                     // Whether the hook is enabled
+    pub quality_threshold: f64,            // Minimum quality score threshold (0.0‑10.0)
+    pub block_critical_issues: bool,       // Block severe issues
+    pub block_major_issues: bool,          // Block major issues
+    pub review_scope: String,              // "security", "performance", or "all"
+    pub exclude_patterns: Vec<String>,     // File patterns to exclude
+    pub max_files_to_review: usize,        // Maximum number of files to review
+    pub show_suggestions: bool,            // Show improvement suggestions
 }
 
 impl Default for PreCommitCodeReviewConfig {
@@ -490,11 +490,11 @@ impl Default for PreCommitCodeReviewConfig {
     }
 }
 
-/// 提交前代码审查Hook - 智能化自动化场景的具体实现
+/// Pre‑commit code review hook – concrete implementation of the intelligent automation scenario
 #[allow(dead_code)]
 pub struct PreCommitCodeReviewHook {
     config: PreCommitCodeReviewConfig,
-    _app: AppHandle, // 保留用于未来扩展，如通知用户等
+    _app: AppHandle, // Reserved for future extensions such as user notifications
 }
 
 #[allow(dead_code)]
@@ -503,17 +503,17 @@ impl PreCommitCodeReviewHook {
         Self { config, _app: app }
     }
 
-    /// 执行提交前代码审查 (Disabled - agent functionality removed)
+    /// Execute pre‑commit code review (Disabled – agent functionality removed)
     pub async fn execute(&self, _project_path: &str) -> Result<CommitDecision, String> {
-        // Agent functionality removed - always allow commits
+        // Agent functionality removed – always allow commits
         Ok(CommitDecision::Allow {
-            message: "代码审查功能已禁用 (Agent functionality removed)".to_string(),
+            message: "Code review functionality has been disabled (Agent functionality removed)".to_string(),
             suggestions: vec![],
         })
     }
 }
 
-/// 提交决策结果
+/// Commit decision result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CommitDecision {
     Allow {
@@ -522,21 +522,21 @@ pub enum CommitDecision {
     },
     Block {
         reason: String,
-        details: String, // Changed from CodeReviewResult - agent functionality removed
+        details: String, // Changed from CodeReviewResult – agent functionality removed
         suggestions: Vec<String>,
     },
 }
 
-/// 执行提交前代码审查Hook (Disabled - agent functionality removed)
+/// Execute pre‑commit code review hook (Disabled – agent functionality removed)
 #[tauri::command]
 pub async fn execute_pre_commit_review(
     _app: tauri::AppHandle,
     _project_path: String,
     _config: Option<PreCommitCodeReviewConfig>,
 ) -> Result<CommitDecision, String> {
-    // Agent functionality has been removed - return allow decision
+    // Agent functionality has been removed – return an allow decision
     Ok(CommitDecision::Allow {
-        message: "代码审查功能已禁用 (Agent functionality removed)".to_string(),
+        message: "Code review functionality has been disabled (Agent functionality removed)".to_string(),
         suggestions: vec![],
     })
 }

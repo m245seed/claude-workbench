@@ -1,36 +1,36 @@
 /**
- * 智能自动滚动 Hook
+ * Smart Auto Scroll Hook
  *
- * 从 ClaudeCodeSession 提取（原 166-170 状态，305-435 逻辑）
- * 提供智能滚动管理：用户手动滚动检测、自动滚动到底部、流式输出滚动
+ * Extracted from ClaudeCodeSession (original 166-170 state, 305-435 logic)
+ * Provides intelligent scroll management: user manual scroll detection, auto-scroll to bottom, streaming output scroll
  */
 
 import { useRef, useState, useEffect } from 'react';
 import type { ClaudeStreamMessage } from '@/types/claude';
 
 interface SmartAutoScrollConfig {
-  /** 可显示的消息列表（用于触发滚动） */
+  /** Displayable message list (used to trigger scrolling) */
   displayableMessages: ClaudeStreamMessage[];
-  /** 是否正在加载（流式输出时） */
+  /** Whether it is loading (during streaming output) */
   isLoading: boolean;
 }
 
 interface SmartAutoScrollReturn {
-  /** 滚动容器 ref */
+  /** Scroll container ref */
   parentRef: React.RefObject<HTMLDivElement>;
-  /** 用户是否手动滚动离开底部 */
+  /** Whether the user has manually scrolled away from the bottom */
   userScrolled: boolean;
-  /** 设置用户滚动状态 */
+  /** Set user scroll state */
   setUserScrolled: (scrolled: boolean) => void;
-  /** 设置自动滚动状态 */
+  /** Set auto-scroll state */
   setShouldAutoScroll: (should: boolean) => void;
 }
 
 /**
- * 智能自动滚动 Hook
+ * Smart Auto Scroll Hook
  *
- * @param config - 配置对象
- * @returns 滚动管理对象
+ * @param config - Configuration object
+ * @returns Scroll management object
  *
  * @example
  * const { parentRef, userScrolled, setUserScrolled, shouldAutoScroll, setShouldAutoScroll } =

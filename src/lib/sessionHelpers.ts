@@ -54,7 +54,7 @@ export async function selectProjectPath(): Promise<string | null> {
     const selected = await open({
       directory: true,
       multiple: false,
-      title: "选择项目目录"
+      title: "Select Project Directory"
     });
 
     return selected as string | null;
@@ -86,7 +86,7 @@ export async function copyAsMarkdown(
   messages: ClaudeStreamMessage[],
   projectPath: string
 ): Promise<void> {
-  let markdown = `# Claude 代码会话\n\n`;
+  let markdown = `# Claude Code Session\n\n`;
   markdown += `**Project:** ${projectPath}\n`;
   markdown += `**Date:** ${new Date().toISOString()}\n\n`;
   markdown += `---\n\n`;
@@ -263,7 +263,7 @@ export function getConversationContext(
         const truncated = userText.length > config.maxUserMessageLength
           ? userText.substring(0, config.maxUserMessageLength) + "..."
           : userText;
-        contextLine = `用户: ${truncated}`;
+        contextLine = `User: ${truncated}`;
       }
     } else if (msg.type === "assistant" && msg.message) {
       // Extract assistant message text using helper function
@@ -274,7 +274,7 @@ export function getConversationContext(
         const truncated = assistantText.length > config.maxAssistantMessageLength
           ? assistantText.substring(0, config.maxAssistantMessageLength) + "..."
           : assistantText;
-        contextLine = `助手: ${truncated}`;
+        contextLine = `Assistant: ${truncated}`;
       }
     } else if (msg.type === "result" && msg.result && config.includeExecutionResults) {
       // Include execution results if enabled in config
@@ -282,7 +282,7 @@ export function getConversationContext(
       const truncated = resultText.length > config.maxExecutionResultLength
         ? resultText.substring(0, config.maxExecutionResultLength) + "..."
         : resultText;
-      contextLine = `执行结果: ${truncated}`;
+      contextLine = `Execution Result: ${truncated}`;
     }
 
     if (contextLine) {

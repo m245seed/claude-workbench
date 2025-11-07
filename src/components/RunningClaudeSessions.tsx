@@ -39,7 +39,7 @@ export const RunningClaudeSessions: React.FC<RunningClaudeSessionsProps> = ({
   const loadRunningSessions = async () => {
     try {
       const sessions = await api.listRunningClaudeSessions();
-      // 🔧 智能刷新：仅在数据真正改变时才更新状态，避免不必要的重新渲染
+      // 🔧 Smart refresh: only update state when data actually changes to avoid unnecessary re-renders
       setRunningSessions(prev => {
         const prevJson = JSON.stringify(prev);
         const newJson = JSON.stringify(sessions);
@@ -47,7 +47,7 @@ export const RunningClaudeSessions: React.FC<RunningClaudeSessionsProps> = ({
           console.log('[RunningClaudeSessions] Data changed, updating...');
           return sessions;
         }
-        return prev; // 返回旧状态，不触发重新渲染
+        return prev; // Return old state, do not trigger re-render
       });
       setError(null);
     } catch (err) {

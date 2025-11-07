@@ -5,16 +5,16 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import "./assets/shimmer.css";
 import "./styles.css";
-import "./i18n"; // ✅ i18n 必须同步加载（App 立即需要使用）
+import "./i18n"; // ✅ i18n must be loaded synchronously (App needs it immediately)
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
-// ⚡ 优化：只异步加载 toolRegistry（可以延迟）
-// import { initializeToolRegistry } from "./lib/toolRegistryInit"; // ❌ 改为异步
+// ⚡ Optimization: load toolRegistry asynchronously (can be delayed)
+// import { initializeToolRegistry } from "./lib/toolRegistryInit"; // ❌ Changed to async
 
-// 防止窗口闪烁的React包装组件
+// React wrapper component to prevent window flicker
 const AppWrapper: React.FC = () => {
   React.useEffect(() => {
-    // ⚡ 性能优化：异步加载 toolRegistry（可以延迟，不阻塞 UI）
+    // ⚡ Performance optimization: asynchronously load toolRegistry (can be delayed, non‑blocking UI)
     const initializeToolRegistry = async () => {
       try {
         const { initializeToolRegistry: init } = await import('./lib/toolRegistryInit');
@@ -25,7 +25,7 @@ const AppWrapper: React.FC = () => {
       }
     };
     
-    // 在React应用完全挂载后显示窗口
+    // Show the window after the React app is fully mounted
     const showWindow = async () => {
       try {
         const window = getCurrentWindow();
@@ -36,10 +36,10 @@ const AppWrapper: React.FC = () => {
       }
     };
     
-    // 后台异步初始化 toolRegistry（不阻塞）
+    // Background async initialization of toolRegistry (non‑blocking)
     initializeToolRegistry();
     
-    // 立即显示窗口（生产模式已优化，不需要长延迟）
+    // Immediately show the window (production mode already optimized, no long delay needed)
     const timer = setTimeout(showWindow, 50);
     return () => clearTimeout(timer);
   }, []);

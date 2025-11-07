@@ -50,7 +50,7 @@ const CodeBlockRenderer: React.FC<CodeBlockRendererProps> = ({ language, code, s
   };
 
   const buttonLabel =
-    copyState === 'success' ? '已复制!' : copyState === 'error' ? '复制失败' : '复制';
+    copyState === 'success' ? 'Copied!' : copyState === 'error' ? 'Copy failed' : 'Copy';
 
   return (
     <div className="relative group my-4">
@@ -98,17 +98,17 @@ const CodeBlockRenderer: React.FC<CodeBlockRendererProps> = ({ language, code, s
 };
 
 interface MessageContentProps {
-  /** Markdown内容 */
+  /** Markdown content */
   content: string;
-  /** 自定义类名 */
+  /** Custom class name */
   className?: string;
-  /** 是否正在流式输出 */
+  /** Whether it is streaming output */
   isStreaming?: boolean;
 }
 
 /**
- * 消息内容渲染组件
- * 支持Markdown + 代码高亮
+ * Message content rendering component
+ * Supports Markdown + code highlighting
  */
 const MessageContentComponent: React.FC<MessageContentProps> = ({
   content,
@@ -123,7 +123,7 @@ const MessageContentComponent: React.FC<MessageContentProps> = ({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          // 代码块渲染
+          // Code block rendering
           code(props: any) {
             const { inline, className, children, ...rest } = props;
             const match = /language-(\w+)/.exec(className || '');
@@ -147,7 +147,7 @@ const MessageContentComponent: React.FC<MessageContentProps> = ({
             );
           },
           
-          // 链接渲染
+          // Link rendering
           a({ node, children, href, ...props }) {
             return (
               <a
@@ -162,7 +162,7 @@ const MessageContentComponent: React.FC<MessageContentProps> = ({
             );
           },
           
-          // 表格渲染
+          // Table rendering
           table({ node, children, ...props }) {
             return (
               <div className="overflow-x-auto my-4">
@@ -177,7 +177,7 @@ const MessageContentComponent: React.FC<MessageContentProps> = ({
         {content}
       </ReactMarkdown>
       
-      {/* 流式输出指示器 */}
+      {/* Streaming output indicator */}
       {isStreaming && (
         <span className="inline-block w-2 h-4 ml-1 bg-primary animate-pulse" />
       )}

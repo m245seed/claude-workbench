@@ -405,7 +405,7 @@ export const TabProvider: React.FC<TabProviderProps> = ({ children }) => {
 };
 
 /**
- * useTabs - 使用标签页状态管理
+ * Tabs hook
  */
 export const useTabs = (): TabContextValue => {
   const context = useContext(TabContext);

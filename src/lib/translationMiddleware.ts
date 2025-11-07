@@ -1,17 +1,17 @@
 import { api, type TranslationConfig } from './api';
 
 /**
- * 速率限制配置接口
+ * Rate Limit Configuration Interface
  */
 interface RateLimitConfig {
   rpm: number; // Requests Per Minute
   tpm: number; // Tokens Per Minute
-  maxConcurrent: number; // 最大并发请求数
-  batchSize: number; // 批处理大小
+  maxConcurrent: number; // Maximum concurrent requests
+  batchSize: number; // Batch size
 }
 
 /**
- * 请求队列项接口
+ * Request Queue Item Interface
  */
 interface QueueItem {
   id: string;
@@ -25,38 +25,38 @@ interface QueueItem {
 }
 
 /**
- * 翻译中间件 - 提供透明的中英文翻译功能 (性能优化版)
+ * Translation Middleware - Provides transparent Chinese-English translation functionality (performance optimized version)
  *
- * 核心功能：
- * 1. 中文输入自动翻译为英文发送给Claude API
- * 2. Claude英文响应自动翻译为中文显示给用户
- * 3. 对用户完全透明
- * 4. 智能速率限制管理 (RPM: 1,000, TPM: 80,000)
- * 5. 请求队列和批处理优化
- * 6. 智能缓存和去重机制
+ * Core features:
+ * 1. Automatically translate Chinese input to English for Claude API
+ * 2. Automatically translate Claude's English responses to Chinese for users
+ * 3. Completely transparent to users
+ * 4. Intelligent rate limit management (RPM: 1,000, TPM: 80,000)
+ * 5. Request queue and batch processing optimization
+ * 6. Intelligent caching and deduplication mechanism
  */
 export class TranslationMiddleware {
   private config: TranslationConfig | null = null;
   private initialized = false;
 
-  // 性能优化相关
+  // Performance optimization related
   private rateLimitConfig: RateLimitConfig = {
-    rpm: 950, // 略低于1,000以留安全余量
-    tpm: 75000, // 略低于80,000以留安全余量
-    maxConcurrent: 5, // 最大并发请求数
-    batchSize: 10 // 批处理大小
+    rpm: 950, // Slightly below 1,000 to leave safety margin
+    tpm: 75000, // Slightly below 80,000 to leave safety margin
+    maxConcurrent: 5, // Maximum concurrent requests
+    batchSize: 10 // Batch size
   };
 
-  // 速率限制跟踪
+  // Rate limit tracking
   private requestTimes: number[] = [];
   private tokenUsage: Array<{ timestamp: number; tokens: number }> = [];
   private activeRequests = 0;
 
-  // 请求队列
+  // Request queue
   private translationQueue: QueueItem[] = [];
   private isProcessingQueue = false;
 
-  // 智能缓存
+  // Intelligent cache
   private translationCache = new Map<string, { result: string; timestamp: number; tokens: number }>();
   private maxCacheSize = 1000;
   private cacheHitCount = 0;
@@ -69,39 +69,39 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 估算文本的Token数量 (粗略估算)
+   * Estimate the number of tokens in text (rough estimate)
    */
   private estimateTokens(text: string): number {
-    // 英文: 大约4个字符 = 1个token
-    // 中文: 大约1-2个字符 = 1个token
+    // English: approximately 4 characters = 1 token
+    // Chinese: approximately 1-2 characters = 1 token
     const chineseChars = (text.match(/[\u4e00-\u9fff]/g) || []).length;
     const otherChars = text.length - chineseChars;
     return Math.ceil(chineseChars * 1.5 + otherChars / 4);
   }
 
   /**
-   * 检查是否可以发送请求（速率限制）
+   * Check if a request can be made (rate limiting)
    */
   private canMakeRequest(estimatedTokens: number): boolean {
     const now = Date.now();
     const oneMinuteAgo = now - 60000;
 
-    // 清理过期的请求时间记录
+    // Clean up expired request time records
     this.requestTimes = this.requestTimes.filter(time => time > oneMinuteAgo);
     this.tokenUsage = this.tokenUsage.filter(usage => usage.timestamp > oneMinuteAgo);
 
-    // 检查RPM限制
+    // Check RPM limit
     if (this.requestTimes.length >= this.rateLimitConfig.rpm) {
       return false;
     }
 
-    // 检查TPM限制
+    // Check TPM limit
     const currentTokenUsage = this.tokenUsage.reduce((sum, usage) => sum + usage.tokens, 0);
     if (currentTokenUsage + estimatedTokens > this.rateLimitConfig.tpm) {
       return false;
     }
 
-    // 检查并发限制
+    // Check concurrency limit
     if (this.activeRequests >= this.rateLimitConfig.maxConcurrent) {
       return false;
     }
@@ -110,7 +110,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 记录请求和Token使用
+   * Record request and token usage
    */
   private recordRequest(tokens: number): void {
     const now = Date.now();
@@ -120,28 +120,28 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 完成请求记录
+   * Complete request record
    */
   private completeRequest(): void {
     this.activeRequests = Math.max(0, this.activeRequests - 1);
   }
 
   /**
-   * 生成缓存键
+   * Generate cache key
    */
   private getCacheKey(text: string, targetLanguage: string): string {
     return `${targetLanguage}:${text.trim().toLowerCase()}`;
   }
 
   /**
-   * 从缓存获取翻译结果
+   * Get translation result from cache
    */
   private getFromCache(text: string, targetLanguage: string): string | null {
     const key = this.getCacheKey(text, targetLanguage);
     const cached = this.translationCache.get(key);
 
     if (cached) {
-      // 检查缓存是否过期 (1小时)
+      // Check if cache is expired (1 hour)
       if (Date.now() - cached.timestamp < 3600000) {
         this.cacheHitCount++;
         return cached.result;
@@ -155,12 +155,12 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 存储到缓存
+   * Store to cache
    */
   private storeToCache(text: string, targetLanguage: string, result: string, tokens: number): void {
     const key = this.getCacheKey(text, targetLanguage);
 
-    // 如果缓存已满，删除最旧的条目
+    // If cache is full, delete the oldest entry
     if (this.translationCache.size >= this.maxCacheSize) {
       const oldestKey = Array.from(this.translationCache.keys())[0];
       this.translationCache.delete(oldestKey);
@@ -174,32 +174,32 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 启动队列处理器
+   * Start queue processor
    */
   private startQueueProcessor(): void {
     setInterval(() => {
       this.processQueue();
-    }, 1000); // 每秒检查队列
+    }, 1000); // Check queue every second
   }
 
   /**
-   * 启动缓存清理器
+   * Start cache cleanup
    */
   private startCacheCleanup(): void {
     setInterval(() => {
       this.cleanupCache();
-    }, 300000); // 每5分钟清理过期缓存
+    }, 300000); // Clean expired cache every 5 minutes
   }
 
   /**
-   * 清理过期缓存
+   * Clean up expired cache
    */
   private cleanupCache(): void {
     const now = Date.now();
     const expired: string[] = [];
 
     for (const [key, value] of this.translationCache.entries()) {
-      if (now - value.timestamp > 3600000) { // 1小时过期
+      if (now - value.timestamp > 3600000) { // 1 hour expiration
         expired.push(key);
       }
     }
@@ -212,7 +212,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 处理翻译队列
+   * Process translation queue
    */
   private async processQueue(): Promise<void> {
     if (this.isProcessingQueue || this.translationQueue.length === 0) {
@@ -222,10 +222,10 @@ export class TranslationMiddleware {
     this.isProcessingQueue = true;
 
     try {
-      // 按优先级排序队列
+      // Sort queue by priority
       this.translationQueue.sort((a, b) => b.priority - a.priority);
 
-      // 收集可以批处理的项目
+      // Collect items that can be batched
       const batchItems: QueueItem[] = [];
       let totalEstimatedTokens = 0;
 
@@ -235,21 +235,21 @@ export class TranslationMiddleware {
         }
 
         if (totalEstimatedTokens + item.estimatedTokens > this.rateLimitConfig.tpm / 4) {
-          break; // 避免单次批处理消耗太多token
+          break; // Avoid single batch consuming too many tokens
         }
 
         if (this.canMakeRequest(item.estimatedTokens)) {
           batchItems.push(item);
           totalEstimatedTokens += item.estimatedTokens;
         } else {
-          break; // 达到速率限制，停止处理
+          break; // Reached rate limit, stop processing
         }
       }
 
       if (batchItems.length > 0) {
         await this.processBatch(batchItems);
 
-        // 从队列中移除已处理的项目
+        // Remove processed items from queue
         this.translationQueue = this.translationQueue.filter(
           item => !batchItems.includes(item)
         );
@@ -262,17 +262,17 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 处理批量翻译
+   * Process batch translation
    */
   private async processBatch(items: QueueItem[]): Promise<void> {
     if (items.length === 0) return;
 
     try {
-      // 记录请求
+      // Record request
       const totalTokens = items.reduce((sum, item) => sum + item.estimatedTokens, 0);
       this.recordRequest(totalTokens);
 
-      // 去重处理 - 相同文本和目标语言的请求
+      // Deduplication - requests with same text and target language
       const uniqueItems = new Map<string, QueueItem[]>();
 
       for (const item of items) {
@@ -283,25 +283,25 @@ export class TranslationMiddleware {
         uniqueItems.get(key)!.push(item);
       }
 
-      // 处理每个唯一的翻译请求
+      // Process each unique translation request
       for (const [, duplicateItems] of uniqueItems.entries()) {
         const firstItem = duplicateItems[0];
 
         try {
-          // 检查缓存
+          // Check cache
           let result = this.getFromCache(firstItem.text, firstItem.targetLanguage);
 
           if (!result) {
-            // 执行翻译
+            // Perform translation
             result = await api.translateText(firstItem.text, firstItem.targetLanguage);
 
-            // 存储到缓存
+            // Store to cache
             if (result) {
               this.storeToCache(firstItem.text, firstItem.targetLanguage, result, firstItem.estimatedTokens);
             }
           }
 
-          // 解析所有重复的请求
+          // Resolve all duplicate requests
           if (result) {
             duplicateItems.forEach(item => item.resolve(result!));
           } else {
@@ -309,13 +309,13 @@ export class TranslationMiddleware {
           }
 
         } catch (error) {
-          // 拒绝所有重复的请求
+          // Reject all duplicate requests
           duplicateItems.forEach(item => item.reject(error));
         }
       }
 
     } catch (error) {
-      // 拒绝所有项目
+      // Reject all items
       items.forEach(item => item.reject(error));
     } finally {
       this.completeRequest();
@@ -323,14 +323,14 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 优化的队列化翻译方法
+   * Optimized queued translation method
    */
   private async queueTranslation(
     text: string,
     targetLanguage: string,
     priority: number = 1
   ): Promise<string> {
-    // 检查缓存
+    // Check cache
     const cachedResult = this.getFromCache(text, targetLanguage);
     if (cachedResult) {
       return cachedResult;
@@ -348,10 +348,10 @@ export class TranslationMiddleware {
         reject
       };
 
-      // 添加到队列
+      // Add to queue
       this.translationQueue.push(queueItem);
 
-      // 如果可以立即处理，触发队列处理
+      // If can process immediately, trigger queue processing
       if (this.canMakeRequest(queueItem.estimatedTokens) && !this.isProcessingQueue) {
         this.processQueue();
       }
@@ -359,7 +359,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 配置速率限制 (根据API配额调整)
+   * Configure rate limits (adjust based on API quota)
    */
   public configureRateLimits(config: Partial<RateLimitConfig>): void {
     this.rateLimitConfig = {
@@ -371,7 +371,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 获取性能统计信息
+   * Get performance statistics
    */
   public getPerformanceStats(): {
     queueLength: number;
@@ -406,7 +406,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 初始化翻译中间件
+   * Initialize translation middleware
    */
   private async init(): Promise<void> {
     try {
@@ -420,7 +420,7 @@ export class TranslationMiddleware {
     } catch (error) {
       console.warn('[TranslationMiddleware] ⚠️ Failed to load saved config, using default:', error);
       this.config = {
-        enabled: true,  // 🔧 修复：默认启用翻译功能
+        enabled: true,  // 🔧 Fix: Enable translation by default
         api_base_url: "https://api.siliconflow.cn/v1",
         api_key: "sk-ednywbvnfwerfcxnqjkmnhxvgcqoyuhmjvfywrshpxsgjbzm",
         model: "tencent/Hunyuan-MT-7B",
@@ -433,7 +433,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 确保中间件已初始化
+   * Ensure middleware is initialized
    */
   private async ensureInitialized(): Promise<void> {
     if (!this.initialized) {
@@ -442,7 +442,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 检查翻译功能是否启用
+   * Check if translation is enabled
    */
   public async isEnabled(): Promise<boolean> {
     await this.ensureInitialized();
@@ -450,52 +450,52 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 检测文本语言
+   * Detect text language
    */
   public async detectLanguage(text: string): Promise<string> {
     try {
       return await api.detectTextLanguage(text);
     } catch (error) {
       console.error('[TranslationMiddleware] Language detection failed:', error);
-      // 使用更强的中英文检测回退
+      // Use stronger Chinese-English detection fallback
       return this.detectChineseContent(text) ? 'zh' : 'en';
     }
   }
 
   /**
-   * 改进的中文内容检测，更智能地处理混合内容
+   * Improved Chinese content detection, smarter handling of mixed content
    */
   private detectChineseContent(text: string): boolean {
     if (!text || text.trim().length === 0) {
       return false;
     }
 
-    // 扩展的中文字符范围匹配
+    // Extended Chinese character range matching
     const chineseChars = text.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3000-\u303f\uff00-\uffef]/g);
 
     if (!chineseChars) {
       return false;
     }
 
-    // 简化的预处理：只移除明确的非中文内容
+    // Simplified preprocessing: only remove obvious non-Chinese content
     const preprocessedText = text
-      // 保留中文标点和全角字符
-      // 移除明确的URL
+      // Keep Chinese punctuation and full-width characters
+      // Remove obvious URLs
       .replace(/https?:\/\/[^\s\u4e00-\u9fff]+/g, ' ')
-      // 移除Windows路径（但保留包含中文的路径）
+      // Remove Windows paths (but keep paths containing Chinese)
       .replace(/[a-zA-Z]:[\\\//](?![\s\S]*[\u4e00-\u9fff])[^\s]+/g, ' ')
-      // 移除纯英文的错误前缀（但保留包含中文的错误信息）
+      // Remove pure English error prefixes (but keep error messages containing Chinese)
       .replace(/^\s*(error|warning|info|debug):\s*(?![\s\S]*[\u4e00-\u9fff])/gmi, ' ')
-      // 移除纯英文代码块
+      // Remove pure English code blocks
       .replace(/```(?![\s\S]*[\u4e00-\u9fff])[\s\S]*?```/g, ' ')
-      // 移除纯英文行内代码
+      // Remove pure English inline code
       .replace(/`(?![^`]*[\u4e00-\u9fff])[^`]+`/g, ' ')
-      // 移除邮箱地址
+      // Remove email addresses
       .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
 
-    // 重新计算中文字符
+    // Recalculate Chinese characters
     const finalChineseChars = preprocessedText.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g);
     const totalLength = preprocessedText.length;
     const chineseCount = finalChineseChars?.length || 0;
@@ -508,20 +508,20 @@ export class TranslationMiddleware {
       textPreview: text.slice(0, 100)
     });
 
-    // 🔧 优化：更宽松的中文检测逻辑
-    // 1. 有1个或以上中文字符就可能是中文（适合短文本）
-    // 2. 对于较长文本，要求中文字符占比达到一定比例
-    // 3. 特殊处理：如果中文字符数量足够多，直接认为是中文
+    // 🔧 Optimization: More lenient Chinese detection logic
+    // 1. If there is 1 or more Chinese characters, it may be Chinese (suitable for short text)
+    // 2. For longer text, require Chinese characters to reach a certain ratio
+    // 3. Special handling: If Chinese character count is sufficient, directly consider as Chinese
     if (chineseCount >= 1) {
       const ratio = totalLength > 0 ? chineseCount / totalLength : 1;
       const originalRatio = text.length > 0 ? chineseChars.length / text.length : 0;
 
-      // 短文本：有中文字符就认为是中文
+      // Short text: If there are Chinese characters, consider as Chinese
       if (text.length <= 20 && chineseCount >= 1) {
         return true;
       }
 
-      // 长文本：要求一定比例，或中文字符数量足够多
+      // Long text: Require certain ratio, or sufficient Chinese character count
       return ratio >= 0.1 || originalRatio >= 0.08 || chineseCount >= 5;
     }
 
@@ -529,25 +529,25 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 检测是否为斜杠命令
+   * Detect if it is a slash command
    * 
-   * @param text 输入文本
-   * @returns 是否为斜杠命令
+   * @param text Input text
+   * @returns Whether it is a slash command
    */
   private isSlashCommand(text: string): boolean {
     const trimmedText = text.trim();
     
-    // 检查是否以斜杠开头
+    // Check if starts with slash
     if (!trimmedText.startsWith('/')) {
       return false;
     }
     
-    // 排除双斜杠注释（如 // 注释）
+    // Exclude double slash comments (like // comment)
     if (trimmedText.startsWith('//')) {
       return false;
     }
     
-    // 排除直接的URL（整个字符串是URL）
+    // Exclude direct URLs (entire string is URL)
     if (trimmedText.match(/^https?:\/\/|^ftp:\/\/|^file:\/\/|^\/\//)) {
       return false;
     }
@@ -556,18 +556,18 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 翻译用户输入（中文->英文）
+   * Translate user input (Chinese->English)
    *
-   * 在发送给Claude API之前调用此方法
-   * 如果输入是中文，则翻译为英文
-   * 如果输入已经是英文或翻译功能未启用，则直接返回原文
+   * Call this method before sending to Claude API
+   * If input is Chinese, translate to English
+   * If input is already English or translation is not enabled, return original text
    *
-   * 特殊处理：
-   * - 跳过斜杠命令（以 / 开头的命令）的翻译，保持原样传递
-   * - 增强了斜杠命令检测的鲁棒性，避免误判URL等情况
+   * Special handling:
+   * - Skip translation for slash commands (commands starting with /), pass as is
+   * - Enhanced robustness of slash command detection, avoid misjudging URLs, etc.
    *
-   * @param userInput 用户输入的原始文本
-   * @returns 处理后的文本（翻译后的英文或原始文本）
+   * @param userInput User's original input text
+   * @returns Processed text (translated English or original text)
    */
   public async translateUserInput(userInput: string): Promise<{
     translatedText: string;
@@ -577,7 +577,7 @@ export class TranslationMiddleware {
   }> {
     await this.ensureInitialized();
 
-    // 检查是否为斜杠命令 - 如果是，直接返回原文不翻译
+    // Check if it is a slash command - if so, return original without translation
     if (this.isSlashCommand(userInput)) {
       const trimmedInput = userInput.trim();
       const commandPreview = trimmedInput.split('\n')[0];
@@ -587,7 +587,7 @@ export class TranslationMiddleware {
         trimmedLength: trimmedInput.length
       });
       
-      // 对于斜杠命令，我们仍然检测语言，但不进行翻译
+      // For slash commands, we still detect language but do not translate
       const detectedLang = await this.detectLanguage(userInput);
       return {
         translatedText: userInput,
@@ -597,7 +597,7 @@ export class TranslationMiddleware {
       };
     }
 
-    // 检查翻译功能是否启用
+    // Check if translation is enabled
     if (!this.config?.enabled) {
       const detectedLang = await this.detectLanguage(userInput);
       return {
@@ -609,15 +609,15 @@ export class TranslationMiddleware {
     }
 
     try {
-      // 检测语言
+      // Detect language
       const detectedLanguage = await this.detectLanguage(userInput);
       console.log('[TranslationMiddleware] Detected input language:', detectedLanguage);
 
-      // 改进的中文检测策略：同时使用语言代码检测和内容检测
+      // Improved Chinese detection strategy: Use both language code detection and content detection simultaneously
       const isChineseByCode = detectedLanguage?.toLowerCase().startsWith('zh');
       const isChineseByContent = this.detectChineseContent(userInput);
 
-      // 优先信任内容检测，因为它更准确
+      // Prioritize content detection as it is more accurate
       const isAsciiOnly = /^[\u0000-\u007F]*$/.test(userInput);
       const shouldTranslate = isChineseByContent || (isChineseByCode && !isAsciiOnly);
 
@@ -630,14 +630,14 @@ export class TranslationMiddleware {
         inputPreview: userInput.slice(0, 100)
       });
 
-      // 如果检测到中文，使用队列化翻译为英文
+      // If Chinese is detected, use queued translation to English
       if (shouldTranslate) {
         console.log('[TranslationMiddleware] 🎯 Chinese content detected, initiating translation to English...');
 
         try {
-          const translatedText = await this.queueTranslation(userInput, 'en', 3); // 高优先级
+          const translatedText = await this.queueTranslation(userInput, 'en', 3); // High priority
 
-          // 验证翻译结果不为空且不等于原文
+          // Verify translation result is not empty and not equal to original
           if (translatedText && translatedText.trim() !== userInput.trim()) {
             console.log('[TranslationMiddleware] ✅ Translation successful:', {
               originalLength: userInput.length,
@@ -662,7 +662,7 @@ export class TranslationMiddleware {
         }
       }
 
-      // 如果已经是英文或其他语言，直接返回
+      // If already English or other language, return as is
       return {
         translatedText: userInput,
         originalText: userInput,
@@ -671,7 +671,7 @@ export class TranslationMiddleware {
       };
     } catch (error) {
       console.error('[TranslationMiddleware] Failed to translate user input:', error);
-      // 降级策略：翻译失败时返回原文
+      // Fallback strategy: Return original text on translation failure
       const detectedLang = await this.detectLanguage(userInput);
       return {
         translatedText: userInput,
@@ -683,19 +683,19 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 翻译Claude响应（英文->中文）
+   * Translate Claude response (English->Chinese)
    *
-   * 在显示Claude响应给用户之前调用此方法
-   * 如果响应是英文且用户原始输入是中文，则翻译为中文
-   * 如果翻译功能未启用或用户输入本来就是英文，则直接返回原文
+   * Call this method before displaying Claude response to user
+   * If response is English and user original input was Chinese, translate to Chinese
+   * If translation is not enabled or user input was originally English, return original text
    *
-   * @param claudeResponse Claude API返回的响应文本
-   * @param userInputWasChinese 用户原始输入是否为中文（用于决定是否需要翻译响应）
-   * @returns 处理后的响应文本（翻译后的中文或原始文本）
+   * @param claudeResponse Response text returned by Claude API
+   * @param userInputWasChinese Whether user's original input was Chinese (used to decide if response needs translation)
+   * @returns Processed response text (translated Chinese or original text)
    */
   public async translateClaudeResponse(
     claudeResponse: string,
-    _userInputWasChinese: boolean = false  // 🔧 参数保留用于API兼容性，但当前未使用
+    _userInputWasChinese: boolean = false  // 🔧 Parameter kept for API compatibility, currently unused
   ): Promise<{
     translatedText: string;
     originalText: string;
@@ -704,7 +704,7 @@ export class TranslationMiddleware {
   }> {
     await this.ensureInitialized();
 
-    // 🔧 防重复翻译：检查内容是否过短或为空
+    // 🔧 Prevent duplicate translation: Check if content is too short or empty
     if (!claudeResponse || claudeResponse.trim().length === 0) {
       console.log('[TranslationMiddleware] ⚠️ Empty or whitespace-only response, skipping translation');
       return {
@@ -715,7 +715,7 @@ export class TranslationMiddleware {
       };
     }
 
-    // 🔧 防重复翻译：检查内容是否过短（少于3个字符的内容通常不需要翻译）
+    // 🔧 Prevent duplicate translation: Check if content is too short (content with less than 3 characters usually doesn't need translation)
     if (claudeResponse.trim().length < 3) {
       console.log('[TranslationMiddleware] ⚠️ Very short response, skipping translation:', claudeResponse.trim());
       return {
@@ -726,7 +726,7 @@ export class TranslationMiddleware {
       };
     }
 
-    // 检查翻译功能是否启用
+    // Check if translation is enabled
     if (!this.config?.enabled) {
       const detectedLang = await this.detectLanguage(claudeResponse);
       return {
@@ -738,7 +738,7 @@ export class TranslationMiddleware {
     }
 
     try {
-      // 检测响应语言
+      // Detect response language
       const detectedLanguage = await this.detectLanguage(claudeResponse);
       console.log('[TranslationMiddleware] 🔍 Detected response language:', {
         language: detectedLanguage,
@@ -746,12 +746,12 @@ export class TranslationMiddleware {
         preview: claudeResponse.substring(0, 50) + (claudeResponse.length > 50 ? '...' : '')
       });
 
-       // 🔧 优化：只翻译确定为英文的响应
+       // 🔧 Optimization: Only translate responses confirmed to be English
        if (detectedLanguage === 'en') {
          console.log('[TranslationMiddleware] 🎯 Queuing English response for Chinese translation...');
 
          try {
-           const translatedText = await this.queueTranslation(claudeResponse, 'zh', 2); // 中等优先级
+           const translatedText = await this.queueTranslation(claudeResponse, 'zh', 2); // Medium priority
 
            console.log('[TranslationMiddleware] ✅ Response translation successful:', {
              originalLength: claudeResponse.length,
@@ -768,7 +768,7 @@ export class TranslationMiddleware {
            };
          } catch (translationError) {
            console.error('[TranslationMiddleware] ❌ Translation queue failed:', translationError);
-           // 翻译失败时返回原文，不抛出错误
+           // On translation failure, return original text without throwing error
            return {
              translatedText: claudeResponse,
              originalText: claudeResponse,
@@ -778,7 +778,7 @@ export class TranslationMiddleware {
          }
        }
 
-       // 如果响应已经是中文或其他语言，直接返回原文
+       // If response is already Chinese or other language, return original text
        console.log('[TranslationMiddleware] ⏭️ Content not English, returning original text');
        return {
          translatedText: claudeResponse,
@@ -788,7 +788,7 @@ export class TranslationMiddleware {
        };
     } catch (error) {
       console.error('[TranslationMiddleware] ❌ Failed to translate Claude response:', error);
-      // 降级策略：翻译失败时返回原文
+      // Fallback strategy: Return original text on translation failure
       const detectedLang = await this.detectLanguage(claudeResponse);
       return {
         translatedText: claudeResponse,
@@ -800,8 +800,8 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 批量翻译文本（用于处理多条消息）- 性能优化版
-   * 使用队列化处理和智能去重
+   * Batch translate texts (for processing multiple messages) - Performance optimized version
+   * Uses queued processing and intelligent deduplication
    */
   public async translateBatch(
     texts: string[],
@@ -814,7 +814,7 @@ export class TranslationMiddleware {
     }
 
     try {
-      // 过滤空文本
+      // Filter empty texts
       const validTexts = texts.filter(text => text && text.trim().length > 0);
 
       if (validTexts.length === 0) {
@@ -823,14 +823,14 @@ export class TranslationMiddleware {
 
       console.log(`[TranslationMiddleware] Processing batch translation for ${validTexts.length} texts`);
 
-      // 使用 Promise.all 并行处理，队列系统会自动管理速率限制
+      // Use Promise.all for parallel processing, queue system automatically manages rate limits
       const translationPromises = validTexts.map((text) =>
-        this.queueTranslation(text, targetLanguage, 1) // 标准优先级
+        this.queueTranslation(text, targetLanguage, 1) // Standard priority
       );
 
       const translatedTexts = await Promise.all(translationPromises);
 
-      // 重新组装结果，保持原始数组的结构
+      // Reassemble results, maintain original array structure
       const results: string[] = [];
       let translatedIndex = 0;
 
@@ -838,7 +838,7 @@ export class TranslationMiddleware {
         if (originalText && originalText.trim().length > 0) {
           results.push(translatedTexts[translatedIndex++]);
         } else {
-          results.push(originalText); // 保持空文本不变
+          results.push(originalText); // Keep empty texts unchanged
         }
       }
 
@@ -853,12 +853,12 @@ export class TranslationMiddleware {
 
     } catch (error) {
       console.error('[TranslationMiddleware] Batch translation failed:', error);
-      return texts; // 降级策略：返回原文
+      return texts; // Fallback strategy: Return original texts
     }
   }
 
   /**
-   * 更新翻译配置
+   * Update translation configuration
    */
   public async updateConfig(config: TranslationConfig): Promise<void> {
     try {
@@ -872,7 +872,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 获取当前配置
+   * Get current configuration
    */
   public async getConfig(): Promise<TranslationConfig> {
     await this.ensureInitialized();
@@ -880,7 +880,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 启用/禁用翻译功能
+   * Enable/disable translation functionality
    */
   public async setEnabled(enabled: boolean): Promise<void> {
     await this.ensureInitialized();
@@ -891,7 +891,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 清空翻译缓存
+   * Clear translation cache
    */
   public async clearCache(): Promise<void> {
     try {
@@ -904,7 +904,7 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 获取缓存统计信息
+   * Get cache statistics
    */
   public async getCacheStats(): Promise<{
     totalEntries: number;
@@ -925,8 +925,8 @@ export class TranslationMiddleware {
   }
 
   /**
-   * 翻译错误消息或状态消息（用于UI反馈）
-   * 专门用于翻译错误信息、通知消息等UI反馈内容
+   * Translate error messages or status messages (for UI feedback)
+   * Specifically for translating error messages, notification messages, etc. for UI feedback
    */
   public async translateErrorMessage(message: string): Promise<string> {
     await this.ensureInitialized();
@@ -936,23 +936,23 @@ export class TranslationMiddleware {
     }
 
     try {
-      // 检测语言，如果是英文则翻译为中文
+      // Detect language, translate to Chinese if English
       const detectedLanguage = await this.detectLanguage(message);
 
       if (detectedLanguage === 'en') {
-        const result = await this.queueTranslation(message, 'zh', 2); // 中等优先级
+        const result = await this.queueTranslation(message, 'zh', 2); // Medium priority
         return result || message;
       }
 
       return message;
     } catch (error) {
       console.error('[TranslationMiddleware] Failed to translate error message:', error);
-      return message; // 失败时返回原消息
+      return message; // Return original message on failure
     }
   }
 
   /**
-   * 批量翻译错误消息
+   * Batch translate error messages
    */
   public async translateErrorMessages(messages: string[]): Promise<string[]> {
     await this.ensureInitialized();
@@ -974,30 +974,30 @@ export class TranslationMiddleware {
   }
 }
 
-// 导出单例实例
+// Export singleton instance
 export const translationMiddleware = new TranslationMiddleware();
 
 /**
- * 工具函数：检测是否为斜杠命令
- * 可以在其他组件中使用，确保检测逻辑的一致性
+ * Utility function: Detect if it is a slash command
+ * Can be used in other components to ensure consistency of detection logic
  * 
- * @param text 输入文本
- * @returns 是否为斜杠命令
+ * @param text Input text
+ * @returns Whether it is a slash command
  */
 export function isSlashCommand(text: string): boolean {
   const trimmedText = text.trim();
   
-  // 检查是否以斜杠开头
+  // Check if starts with slash
   if (!trimmedText.startsWith('/')) {
     return false;
   }
   
-  // 排除双斜杠注释（如 // 注释）
+  // Exclude double slash comments (like // comment)
   if (trimmedText.startsWith('//')) {
     return false;
   }
   
-  // 排除直接的URL（整个字符串是URL）
+  // Exclude direct URLs (entire string is URL)
   if (trimmedText.match(/^https?:\/\/|^ftp:\/\/|^file:\/\/|^\/\//)) {
     return false;
   }
@@ -1006,7 +1006,7 @@ export function isSlashCommand(text: string): boolean {
 }
 
 /**
- * 翻译结果接口
+ * Translation result interface
  */
 export interface TranslationResult {
   translatedText: string;
@@ -1016,7 +1016,7 @@ export interface TranslationResult {
 }
 
 /**
- * 翻译中间件状态接口
+ * Translation middleware status interface
  */
 export interface TranslationStatus {
   enabled: boolean;

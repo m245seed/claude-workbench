@@ -1,18 +1,17 @@
 /**
- * 类型转换工具 - 在现有HooksConfiguration和新的EnhancedHooksConfiguration之间转换
- * Type conversion utilities between existing HooksConfiguration and new EnhancedHooksConfiguration
+ * Type conversion utilities - Convert between existing HooksConfiguration and new EnhancedHooksConfiguration
  */
 
 import type { HooksConfiguration } from '@/types/hooks';
 import type { EnhancedHooksConfiguration } from '@/types/enhanced-hooks';
 
 /**
- * 将现有的HooksConfiguration转换为EnhancedHooksConfiguration
+ * Convert existing HooksConfiguration to EnhancedHooksConfiguration
  */
 export function convertToEnhanced(config: HooksConfiguration): EnhancedHooksConfiguration {
   const enhanced: EnhancedHooksConfiguration = {};
 
-  // 处理有matcher的事件(PreToolUse, PostToolUse)
+  // Handle events with matcher (PreToolUse, PostToolUse)
   if (config.PreToolUse) {
     enhanced.PreToolUse = config.PreToolUse.flatMap(matcher =>
       matcher.hooks.map(hook => ({
@@ -33,7 +32,7 @@ export function convertToEnhanced(config: HooksConfiguration): EnhancedHooksConf
     );
   }
 
-  // 处理简单命令事件 - 现在也是 HookMatcher[] 格式
+  // Handle simple command events - now also in HookMatcher[] format
   if (config.Notification) {
     enhanced.Notification = config.Notification.flatMap(matcher =>
       matcher.hooks.map(hook => ({
@@ -64,7 +63,7 @@ export function convertToEnhanced(config: HooksConfiguration): EnhancedHooksConf
     );
   }
   
-  // 处理新增的事件
+  // Handle newly added events
   if (config.UserPromptSubmit) {
     enhanced.OnSessionStart = config.UserPromptSubmit.flatMap(matcher =>
       matcher.hooks.map(hook => ({
@@ -99,12 +98,12 @@ export function convertToEnhanced(config: HooksConfiguration): EnhancedHooksConf
 }
 
 /**
- * 将EnhancedHooksConfiguration转换为现有的HooksConfiguration
+ * Convert EnhancedHooksConfiguration to existing HooksConfiguration
  */
 export function convertFromEnhanced(enhanced: EnhancedHooksConfiguration): HooksConfiguration {
   const config: HooksConfiguration = {};
 
-  // 处理有matcher的事件 - 转换为默认matcher
+  // Handle events with matcher - convert to default matcher
   if (enhanced.PreToolUse && enhanced.PreToolUse.length > 0) {
     config.PreToolUse = [{
       hooks: enhanced.PreToolUse.map(hook => ({
@@ -125,7 +124,7 @@ export function convertFromEnhanced(enhanced: EnhancedHooksConfiguration): Hooks
     }];
   }
 
-  // 处理简单命令事件 - 转换为 HookMatcher[] 格式
+  // Handle simple command events - convert to HookMatcher[] format
   if (enhanced.Notification && enhanced.Notification.length > 0) {
     config.Notification = [{
       hooks: enhanced.Notification.map(hook => ({
@@ -160,7 +159,7 @@ export function convertFromEnhanced(enhanced: EnhancedHooksConfiguration): Hooks
 }
 
 /**
- * 合并两种配置格式，优先使用Enhanced格式的新特性
+ * Merge the two configuration formats, prioritizing new features of the Enhanced format
  */
 export function mergeConfigurations(
   existing: HooksConfiguration,
@@ -171,7 +170,7 @@ export function mergeConfigurations(
   return {
     ...converted,
     ...enhanced,
-    // 如果两者都有相同事件，合并它们
+    // If both have the same event, merge them
     PreToolUse: [
       ...(converted.PreToolUse || []),
       ...(enhanced.PreToolUse || [])

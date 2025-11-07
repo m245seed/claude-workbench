@@ -1,8 +1,8 @@
 /**
- * 工具注册初始化模块
+ * Tool registration initialization module
  *
- * 将所有工具 Widget 组件注册到 toolRegistry
- * 在应用启动时调用 initializeToolRegistry() 完成注册
+ * Register all tool Widget components to toolRegistry
+ * Call initializeToolRegistry() at application startup to complete registration
  */
 
 import { toolRegistry, ToolRenderer, ToolRenderProps } from './toolRegistry';
@@ -30,8 +30,8 @@ import {
 } from '@/components/ToolWidgets';
 
 /**
- * 工具适配器工厂
- * 将旧的 Widget 组件适配到新的 ToolRenderProps 接口
+ * Tool adapter factory
+ * Adapts old Widget components to the new ToolRenderProps interface
  */
 function createToolAdapter<T extends Record<string, any>>(
   WidgetComponent: React.FC<T>,
@@ -44,7 +44,7 @@ function createToolAdapter<T extends Record<string, any>>(
 }
 
 /**
- * 注册所有内置工具
+ * Register all built-in tools
  */
 export function initializeToolRegistry(): void {
   const extractStringContent = (value: unknown): string => {
@@ -103,7 +103,7 @@ export function initializeToolRegistry(): void {
         todos: props.input?.todos || [],
         result: props.result,
       })),
-      description: 'Todo 列表管理工具',
+      description: 'Todo list management tool',
     },
     {
       name: 'todoread',
@@ -111,7 +111,7 @@ export function initializeToolRegistry(): void {
         todos: props.input?.todos || props.result?.content || [],
         result: props.result,
       })),
-      description: 'Todo 列表读取工具',
+      description: 'Todo list reading tool',
     },
 
     // LS - 列出目录
@@ -121,7 +121,7 @@ export function initializeToolRegistry(): void {
         path: props.input?.path || '.',
         result: props.result,
       })),
-      description: '目录列表工具',
+      description: 'Directory listing tool',
     },
 
     // Read - 读取文件
@@ -131,7 +131,7 @@ export function initializeToolRegistry(): void {
         filePath: props.input?.file_path || props.input?.path || '',
         result: props.result,
       })),
-      description: '文件读取工具',
+      description: 'File reading tool',
     },
 
     // Edit - 编辑文件
@@ -143,7 +143,7 @@ export function initializeToolRegistry(): void {
         new_string: props.input?.new_string || '',
         result: props.result,
       })),
-      description: '文件编辑工具（搜索替换）',
+      description: 'File editing tool (search and replace)',
     },
 
     // MultiEdit - 批量编辑
@@ -154,7 +154,7 @@ export function initializeToolRegistry(): void {
         edits: props.input?.edits || [],
         result: props.result,
       })),
-      description: '批量文件编辑工具',
+      description: 'Batch file editing tool',
     },
 
     // Bash - 执行命令
@@ -165,7 +165,7 @@ export function initializeToolRegistry(): void {
         description: props.input?.description,
         result: props.result,
       })),
-      description: 'Bash 命令执行工具',
+      description: 'Bash command execution tool',
     },
 
     // Grep - 搜索内容
@@ -178,7 +178,7 @@ export function initializeToolRegistry(): void {
         exclude: props.input?.exclude,
         result: props.result,
       })),
-      description: '代码搜索工具',
+      description: 'Code search tool',
     },
 
     // Glob - 查找文件
@@ -189,7 +189,7 @@ export function initializeToolRegistry(): void {
         path: props.input?.path,
         result: props.result,
       })),
-      description: '文件匹配查找工具',
+      description: 'File matching search tool',
     },
 
     // Write - 写入文件
@@ -200,7 +200,7 @@ export function initializeToolRegistry(): void {
         content: props.input?.content || '',
         result: props.result,
       })),
-      description: '文件写入工具',
+      description: 'File writing tool',
     },
 
     // WebSearch - 网络搜索
@@ -210,7 +210,7 @@ export function initializeToolRegistry(): void {
         query: props.input?.query || '',
         result: props.result,
       })),
-      description: '网络搜索工具',
+      description: 'Web search tool',
     },
 
     // WebFetch - 获取网页
@@ -221,7 +221,7 @@ export function initializeToolRegistry(): void {
         prompt: props.input?.prompt,
         result: props.result,
       })),
-      description: '网页获取工具',
+      description: 'Web page fetch tool',
     },
 
     // BashOutput - 后台命令输出
@@ -231,7 +231,7 @@ export function initializeToolRegistry(): void {
         bash_id: props.input?.bash_id || '',
         result: props.result,
       })),
-      description: '后台命令输出查看工具',
+      description: 'Background command output viewing tool',
     },
 
     // MCP 工具（正则匹配）
@@ -244,7 +244,7 @@ export function initializeToolRegistry(): void {
         input: props.input,
         result: props.result,
       })),
-      description: 'Model Context Protocol 工具（通用）',
+      description: 'Model Context Protocol tool (general)',
     },
 
     // Task - 子代理工具（Claude Code 特有）
@@ -255,7 +255,7 @@ export function initializeToolRegistry(): void {
         prompt: props.input?.prompt ?? props.result?.content?.prompt,
         result: props.result,
       })),
-      description: 'Claude Code 子代理工具',
+      description: 'Claude Code sub-agent tool',
     },
 
     // System Reminder - 系统提醒信息
@@ -270,7 +270,7 @@ export function initializeToolRegistry(): void {
           message: message || '系统提醒',
         };
       }),
-      description: '系统提醒信息显示',
+      description: 'System reminder display',
     },
 
     // Command - 命令信息展示
@@ -296,7 +296,7 @@ export function initializeToolRegistry(): void {
           commandArgs,
         };
       }),
-      description: 'Slash 命令展示',
+      description: 'Slash command display',
     },
 
     // Command Output - 命令输出展示
@@ -307,7 +307,7 @@ export function initializeToolRegistry(): void {
         output: extractStringContent(props.result?.content ?? props.input?.output ?? ''),
         onLinkDetected: props.onLinkDetected,
       })),
-      description: '命令执行输出',
+      description: 'Command execution output',
     },
 
     // Summary - 会话总结展示
@@ -318,7 +318,7 @@ export function initializeToolRegistry(): void {
         leafUuid: props.input?.leafUuid ?? props.input?.leaf_uuid ?? props.result?.content?.leafUuid,
         usage: props.input?.usage ?? (props.result as any)?.usage,
       })),
-      description: '会话摘要展示',
+      description: 'Session summary display',
     },
 
     // System Initialized - 系统初始化信息
@@ -332,7 +332,7 @@ export function initializeToolRegistry(): void {
         tools: props.input?.tools ?? props.result?.content?.tools,
         timestamp: props.input?.timestamp ?? props.result?.content?.timestamp,
       })),
-      description: '系统初始化信息展示',
+      description: 'System initialization info display',
     },
 
     // Thinking - 思考过程展示
@@ -343,28 +343,28 @@ export function initializeToolRegistry(): void {
         signature: props.input?.signature ?? props.result?.content?.signature,
         usage: props.input?.usage ?? (props.result as any)?.usage,
       })),
-      description: 'AI 思考过程展示',
+      description: 'AI thinking process display',
     },
   ];
 
-  // 批量注册所有工具
+  // Batch register all tools
   toolRegistry.registerBatch(tools);
 
-  // 输出注册统计
+  // Output registration statistics
   const stats = toolRegistry.getStats();
-  console.log(`[ToolRegistry] 工具注册完成: ${stats.total} 个工具, ${stats.withPattern} 个模式匹配工具`);
+  console.log(`[ToolRegistry] Tool registration complete: ${stats.total} tools, ${stats.withPattern} pattern-matching tools`);
 }
 
 /**
- * 注册自定义工具（供外部扩展使用）
+ * Register custom tool (for external extension use)
  */
 export function registerCustomTool(tool: ToolRenderer): void {
   toolRegistry.register(tool);
-  console.log(`[ToolRegistry] 自定义工具注册: ${tool.name}`);
+  console.log(`[ToolRegistry] Custom tool registered: ${tool.name}`);
 }
 
 /**
- * 获取所有已注册工具的列表（用于调试）
+ * Get the list of all registered tools (for debugging)
  */
 export function getRegisteredTools(): ToolRenderer[] {
   return toolRegistry.getAllRenderers();

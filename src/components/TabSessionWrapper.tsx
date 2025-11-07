@@ -12,9 +12,9 @@ interface TabSessionWrapperProps {
 }
 
 /**
- * TabSessionWrapper - 标签页会话包装器
- * 为每个标签页提供独立的会话状态管理和生命周期控制
- * 使用React.memo优化，避免不必要的重新渲染
+ * TabSessionWrapper - Tab Session Wrapper
+ * Provides independent session state management and lifecycle control for each tab
+ * Optimized with React.memo to avoid unnecessary re-renders
  */
 const TabSessionWrapperComponent: React.FC<TabSessionWrapperProps> = ({
   tabId,
@@ -40,34 +40,34 @@ const TabSessionWrapperComponent: React.FC<TabSessionWrapperProps> = ({
     setCleanup(cleanup);
   }, [tabId, setCleanup]);
 
-  // 包装 onStreamingChange 以更新标签页状态
-  // 🔧 性能修复：使用 useCallback 避免无限渲染循环（从 1236 renders/s 降至 1 render/s）
+  // Wrap onStreamingChange to update tab state
+  // 🔧 Performance fix: Use useCallback to avoid infinite render loops (from 1236 renders/s down to 1 render/s)
   const handleStreamingChange = useCallback((isStreaming: boolean, sessionId: string | null) => {
     sessionRef.current.sessionId = sessionId;
     updateStreaming(isStreaming, sessionId);
     onStreamingChange?.(isStreaming, sessionId);
 
-    // 🔧 移除标题自动更新逻辑
-    // 会话 ID 已经在 Tooltip 中显示，不需要在标题中重复显示
+    // 🔧 Remove automatic title update logic
+    // Session ID is already displayed in Tooltip, no need to repeat in title
   }, [updateStreaming, onStreamingChange]);
 
-  // 监听会话变化并标记为已更改
+  // Monitor session changes and mark as modified
   useEffect(() => {
-    // 这里可以监听会话内容变化
-    // 暂时注释掉，等待 ClaudeCodeSession 组件支持变更回调
+    // Here we can monitor session content changes
+    // Temporarily commented out, waiting for ClaudeCodeSession component to support change callbacks
   }, []);
 
-  // 当标签页变为非活跃时，保持会话状态在后台
+  // When the tab becomes inactive, keep the session state in the background
   useEffect(() => {
-    // 使用tabId来获取最新的tab信息，避免依赖tab对象引用
-    const currentTab = tab; // tab来自useTabSession，但不作为依赖
+    // Use tabId to get the latest tab information, avoid depending on tab object reference
+    const currentTab = tab; // tab comes from useTabSession, but not as a dependency
 
     if (!isActive && currentTab) {
       console.log(`[TabSessionWrapper] Tab ${tabId} is now in background, preserving state`);
     } else if (isActive && currentTab) {
       console.log(`[TabSessionWrapper] Tab ${tabId} is now active`);
     }
-  }, [isActive, tabId]); // 只依赖isActive和tabId，避免对象引用变化导致的无限循环
+  }, [isActive, tabId]); // Only depend on isActive and tabId, avoid infinite loops from object reference changes
 
   return (
     <div
@@ -84,14 +84,14 @@ const TabSessionWrapperComponent: React.FC<TabSessionWrapperProps> = ({
   );
 };
 
-// 使用React.memo优化，避免不必要的重新渲染
+// Optimized with React.memo to avoid unnecessary re-renders
 export const TabSessionWrapper = React.memo(TabSessionWrapperComponent, (prevProps, nextProps) => {
-  // 自定义比较函数，只有这些props变化时才重新渲染
+  // Custom comparison function, only re-render when these props change
   return (
     prevProps.tabId === nextProps.tabId &&
     prevProps.isActive === nextProps.isActive &&
     prevProps.session?.id === nextProps.session?.id &&
     prevProps.initialProjectPath === nextProps.initialProjectPath
-    // onStreamingChange 等函数props通常是稳定的
+    // Function props like onStreamingChange are usually stable
   );
 });

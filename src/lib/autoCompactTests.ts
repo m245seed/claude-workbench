@@ -158,8 +158,8 @@ const updateTokenUsage = async (tokenCount: number) => {
         console.log('Auto-compaction triggered for session:', claudeSessionId);
         // Optionally show a notification to the user
         toast({
-          title: "自动压缩触发",
-          description: "上下文窗口已接近限制，正在进行智能压缩...",
+          title: "Auto-compact triggered",
+          description: "Context window is approaching the limit; performing smart compaction...",
           duration: 3000,
         });
       }
@@ -223,28 +223,28 @@ export const getPerformanceRecommendations = (status: any, sessions: any[]) => {
   if (!status.enabled) {
     recommendations.push({
       type: 'warning',
-      message: '建议启用自动压缩功能以优化长对话的性能'
+      message: 'Consider enabling auto-compact to optimize performance for long conversations'
     });
   }
 
   if (status.compaction_threshold > 0.9) {
     recommendations.push({
       type: 'info',
-      message: '压缩阈值较高，考虑降低到 80-85% 以获得更好的性能'
+      message: 'Compaction threshold is high; consider lowering it to 80-85% for better performance'
     });
   }
 
   if (sessions.some(s => s.current_tokens > status.max_context_tokens * 0.95)) {
     recommendations.push({
       type: 'critical',
-      message: '某些会话接近上下文限制，建议立即进行手动压缩'
+      message: 'Some sessions are approaching the context limit; consider performing manual compaction immediately'
     });
   }
 
   if (status.total_compactions === 0 && sessions.length > 0) {
     recommendations.push({
       type: 'info',
-      message: '尚未执行过自动压缩，确认配置是否正确'
+      message: 'No automatic compactions have been performed yet; verify the configuration'
     });
   }
 

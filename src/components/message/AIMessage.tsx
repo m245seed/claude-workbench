@@ -8,28 +8,28 @@ import { tokenExtractor } from "@/lib/tokenExtractor";
 import type { ClaudeStreamMessage } from '@/types/claude';
 
 interface AIMessageProps {
-  /** 消息数据 */
+  /** Message data */
   message: ClaudeStreamMessage;
-  /** 是否正在流式输出 */
+  /** Whether it is streaming output */
   isStreaming?: boolean;
-  /** 自定义类名 */
+  /** Custom class name */
   className?: string;
-  /** 链接检测回调 */
+  /** Link detection callback */
   onLinkDetected?: (url: string) => void;
 }
 
 /**
- * 提取AI消息的文本内容
+ * Extract the text content of AI message
  */
 const extractAIText = (message: ClaudeStreamMessage): string => {
   if (!message.message?.content) return '';
   
   const content = message.message.content;
   
-  // 如果是字符串，直接返回
+  // If it's a string, return directly
   if (typeof content === 'string') return content;
   
-  // 如果是数组，提取所有text类型的内容
+  // If it's an array, extract all text type content
   if (Array.isArray(content)) {
     return content
       .filter((item: any) => item.type === 'text')
@@ -41,7 +41,7 @@ const extractAIText = (message: ClaudeStreamMessage): string => {
 };
 
 /**
- * 检测消息中是否有工具调用
+ * Detect if there are tool calls in the message
  */
 const hasToolCalls = (message: ClaudeStreamMessage): boolean => {
   if (!message.message?.content) return false;
@@ -55,7 +55,7 @@ const hasToolCalls = (message: ClaudeStreamMessage): boolean => {
 };
 
 /**
- * 检测消息中是否有思考块
+ * Detect if there is a thinking block in the message
  */
 const hasThinkingBlock = (message: ClaudeStreamMessage): boolean => {
   if (!message.message?.content) return false;
@@ -67,7 +67,7 @@ const hasThinkingBlock = (message: ClaudeStreamMessage): boolean => {
 };
 
 /**
- * 提取思考块内容
+ * Extract thinking block content
  */
 const extractThinkingContent = (message: ClaudeStreamMessage): string => {
   if (!message.message?.content) return '';
@@ -80,8 +80,8 @@ const extractThinkingContent = (message: ClaudeStreamMessage): string => {
 };
 
 /**
- * AI消息组件（重构版）
- * 左对齐卡片样式，支持工具调用展示和思考块
+ * AI Message Component (Refactored)
+ * Left-aligned card style, supports tool call display and thinking block
  */
 export const AIMessage: React.FC<AIMessageProps> = ({
   message,
@@ -94,16 +94,16 @@ export const AIMessage: React.FC<AIMessageProps> = ({
   const hasThinking = hasThinkingBlock(message);
   const thinkingContent = hasThinking ? extractThinkingContent(message) : '';
 
-  // 如果既没有文本又没有工具调用又没有思考块，不渲染
+  // If there is neither text nor tool calls nor thinking block, do not render
   if (!text && !hasTools && !hasThinking) return null;
 
-  // 格式化时间戳
+  // Format timestamp
   const formatTimestamp = (timestamp: string | undefined): string => {
     if (!timestamp) return '';
     try {
       const date = new Date(timestamp);
       if (isNaN(date.getTime())) return '';
-      return date.toLocaleTimeString('zh-CN', { 
+      return date.toLocaleTimeString('en-US', { 
         hour12: false, 
         hour: '2-digit', 
         minute: '2-digit', 
@@ -114,7 +114,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
     }
   };
 
-  // 提取 tokens 统计
+  // Extract token statistics
   const tokenStats = message.message?.usage ? (() => {
     const extractedTokens = tokenExtractor.extract({
       type: 'assistant',
@@ -122,10 +122,10 @@ export const AIMessage: React.FC<AIMessageProps> = ({
     });
     const parts = [`${extractedTokens.input_tokens}/${extractedTokens.output_tokens}`];
     if (extractedTokens.cache_creation_tokens > 0) {
-      parts.push(`创建${extractedTokens.cache_creation_tokens}`);
+      parts.push(`Created ${extractedTokens.cache_creation_tokens}`);
     }
     if (extractedTokens.cache_read_tokens > 0) {
-      parts.push(`缓存${extractedTokens.cache_read_tokens}`);
+      parts.push(`Cached ${extractedTokens.cache_read_tokens}`);
     }
     return parts.join(' | ');
   })() : null;
@@ -133,10 +133,10 @@ export const AIMessage: React.FC<AIMessageProps> = ({
   return (
     <div className={cn("relative", className)}>
       <MessageBubble variant="assistant" isStreaming={isStreaming}>
-        {/* 消息头部：整合标头和tokens统计 */}
+        {/* Message header: Integrate header and token statistics */}
         <div className="px-4 pt-3 pb-2">
           <div className="flex items-center justify-between gap-4 text-xs text-muted-foreground">
-            {/* 左侧：头像 + 名称 + 时间 */}
+            {/* Left: Avatar + Name + Time */}
             <div className="flex items-center gap-2 min-w-0">
               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/10 flex-shrink-0">
                 <Bot className="w-4 h-4 text-blue-500" />
@@ -153,7 +153,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
               )}
             </div>
             
-            {/* 右侧：tokens统计 */}
+            {/* Right: Token statistics */}
             {tokenStats && (
               <div className="text-foreground/60 font-mono flex-shrink-0">
                 Tokens: {tokenStats}
@@ -162,7 +162,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
           </div>
         </div>
 
-        {/* 消息内容 */}
+        {/* Message content */}
         {text && (
           <div className="px-4 pb-3">
             <MessageContent
@@ -172,15 +172,15 @@ export const AIMessage: React.FC<AIMessageProps> = ({
           </div>
         )}
 
-        {/* 思考块区域 */}
+        {/* Thinking block area */}
         {hasThinking && thinkingContent && (
           <div className="mx-4 mb-3 border-l-2 border-purple-500/30 bg-purple-500/5 rounded">
             <details className="group">
               <summary className="cursor-pointer px-3 py-2 text-xs text-purple-700 dark:text-purple-300 font-medium hover:bg-purple-500/10 transition-colors select-none flex items-center gap-2">
                 <span className="inline-block transition-transform group-open:rotate-90">▶</span>
-                <span>思考过程</span>
+                <span>Thinking Process</span>
                 <span className="ml-auto text-[10px] text-muted-foreground">
-                  {thinkingContent.length} 字符
+                  {thinkingContent.length} characters
                 </span>
               </summary>
               <div className="px-3 pb-3 pt-1">
@@ -192,7 +192,7 @@ export const AIMessage: React.FC<AIMessageProps> = ({
           </div>
         )}
 
-        {/* 工具调用区域 */}
+        {/* Tool calls area */}
         {hasTools && (
           <ToolCallsGroup
             message={message}

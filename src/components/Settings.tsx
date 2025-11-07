@@ -56,9 +56,8 @@ interface EnvironmentVariable {
 }
 
 /**
- * 全面的设置界面，用于管理 Claude Code 设置
- * 提供无代码界面来编辑 settings.json 文件
- * Comprehensive Settings UI for managing Claude Code settings
+ * Settings component
+ * Comprehensive settings interface for managing Claude Code settings
  * Provides a no-code interface for editing the settings.json file
  */
 export const Settings: React.FC<SettingsProps> = ({
@@ -73,7 +72,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("general");
 
-  // ⚡ 监听切换到提示词API标签的事件（内部事件）
+  // Listen for switch to prompt-api tab event (internal event)
   useEffect(() => {
     const handleSwitchTab = () => {
       console.log('[Settings] Switching to prompt-api tab');
@@ -130,7 +129,7 @@ export const Settings: React.FC<SettingsProps> = ({
    */
   const handleSetCustomPath = async () => {
     if (!customClaudePath.trim()) {
-      setCustomPathError("请输入有效的路径");
+      setCustomPathError(t('errors.pleaseEnterValidPath'));
       return;
     }
 
@@ -146,12 +145,12 @@ export const Settings: React.FC<SettingsProps> = ({
       setIsCustomPathMode(false);
       
       // Show success message
-      setToast({ message: "自定义 Claude CLI 路径设置成功", type: "success" });
+      setToast({ message: t('errors.customPathSetSuccess'), type: "success" });
       
       // Trigger status refresh
       window.dispatchEvent(new CustomEvent('validate-claude-installation'));
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "设置自定义路径失败";
+      const errorMessage = error instanceof Error ? error.message : t('errors.setCustomPathFailed');
       setCustomPathError(errorMessage);
     }
   };
@@ -172,12 +171,12 @@ export const Settings: React.FC<SettingsProps> = ({
       setCustomPathError(null);
       
       // Show success message
-      setToast({ message: "已恢复到自动检测", type: "success" });
+      setToast({ message: t('errors.restoredToAuto'), type: "success" });
       
       // Trigger status refresh
       window.dispatchEvent(new CustomEvent('validate-claude-installation'));
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "清除自定义路径失败";
+      const errorMessage = error instanceof Error ? error.message : t('errors.clearCustomPathFailed');
       setToast({ message: errorMessage, type: "error" });
     }
   };
@@ -234,7 +233,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
     } catch (err) {
       console.error("Failed to load settings:", err);
-      setError("加载设置失败。请确保 ~/.claude 目录存在。");
+      setError(t('errors.loadSettingsFailed'));
       setSettings({});
     } finally {
       setLoading(false);
@@ -292,8 +291,8 @@ export const Settings: React.FC<SettingsProps> = ({
       setToast({ message: "Settings saved successfully!", type: "success" });
     } catch (err) {
       console.error("Failed to save settings:", err);
-      setError("保存设置失败。");
-      setToast({ message: "保存设置失败", type: "error" });
+      setError(t('errors.saveSettingsFailed'));
+      setToast({ message: t('errors.saveSettingsFailed'), type: "error" });
     } finally {
       setSaving(false);
     }
@@ -457,13 +456,13 @@ export const Settings: React.FC<SettingsProps> = ({
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-9 w-full">
               <TabsTrigger value="general">{t('settings.general')}</TabsTrigger>
-              <TabsTrigger value="permissions">权限</TabsTrigger>
-              <TabsTrigger value="environment">环境</TabsTrigger>
-              <TabsTrigger value="hooks">钩子</TabsTrigger>
-              <TabsTrigger value="commands">命令</TabsTrigger>
-              <TabsTrigger value="translation">翻译</TabsTrigger>
-              <TabsTrigger value="prompt-api">提示词API</TabsTrigger>
-              <TabsTrigger value="provider">代理商</TabsTrigger>
+              <TabsTrigger value="permissions">{t('settings.permissions')}</TabsTrigger>
+              <TabsTrigger value="environment">{t('settings.environment')}</TabsTrigger>
+              <TabsTrigger value="hooks">{t('settings.hooks')}</TabsTrigger>
+              <TabsTrigger value="commands">{t('settings.commands')}</TabsTrigger>
+              <TabsTrigger value="translation">{t('settings.translation')}</TabsTrigger>
+              <TabsTrigger value="prompt-api">{t('settings.promptApi')}</TabsTrigger>
+              <TabsTrigger value="provider">{t('settings.provider')}</TabsTrigger>
               <TabsTrigger value="storage">{t('settings.storage')}</TabsTrigger>
             </TabsList>
             
@@ -507,9 +506,9 @@ export const Settings: React.FC<SettingsProps> = ({
                     {/* Show System Initialization Info */}
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5 flex-1">
-                        <Label htmlFor="showSystemInit">显示系统初始化信息</Label>
+                        <Label htmlFor="showSystemInit">{t('settings.showSystemInit')}</Label>
                         <p className="text-xs text-muted-foreground">
-                          在会话开始时显示Session ID、Model、工作目录和可用工具信息
+                          {t('settings.showSystemInitDesc')}
                         </p>
                       </div>
                       <Switch
@@ -522,9 +521,9 @@ export const Settings: React.FC<SettingsProps> = ({
                     {/* Hide Warmup Messages */}
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5 flex-1">
-                        <Label htmlFor="hideWarmup">隐藏 Warmup 消息</Label>
+                        <Label htmlFor="hideWarmup">{t('settings.hideWarmup')}</Label>
                         <p className="text-xs text-muted-foreground">
-                          在会话消息中隐藏自动发送的 Warmup 消息及其回复（启动时的预热消息）
+                          {t('settings.hideWarmupDesc')}
                         </p>
                       </div>
                       <Switch
@@ -537,9 +536,9 @@ export const Settings: React.FC<SettingsProps> = ({
                     {/* Include Co-authored By */}
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5 flex-1">
-                        <Label htmlFor="coauthored">包含 "Co-authored by Claude"</Label>
+                        <Label htmlFor="coauthored">{t('settings.coauthored')}</Label>
                         <p className="text-xs text-muted-foreground">
-                          在 git 提交和拉取请求中添加 Claude 署名
+                          {t('settings.coauthoredDesc')}
                         </p>
                       </div>
                       <Switch

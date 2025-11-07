@@ -1,55 +1,55 @@
 /**
- * 消息过滤模块 - 统一消息过滤逻辑
+ * Message filtering module - unified message filtering logic
  *
- * 将 ClaudeCodeSession 中分散的消息过滤规则集中管理
- * 提供可配置的过滤选项，易于测试和维护
+ * Centralizes the scattered message filtering rules in ClaudeCodeSession
+ * Provides configurable filtering options, easy to test and maintain
  */
 
 import type { ClaudeStreamMessage } from '@/types/claude';
 
 /**
- * 过滤选项配置
+ * Filter options configuration
  */
 export interface FilterOptions {
-  /** 是否隐藏 meta 消息（没有 leafUuid 和 summary 的消息） */
+  /** Whether to hide meta messages (messages without leafUuid and summary) */
   hideMeta?: boolean;
 
-  /** 是否隐藏空内容的用户消息 */
+  /** Whether to hide user messages with empty content */
   hideEmptyUser?: boolean;
 
-  /** 是否去重工具结果（避免显示已有 widget 的工具结果） */
+  /** Whether to deduplicate tool results (avoid displaying tool results that already have widgets) */
   deduplicateToolResults?: boolean;
 
-  /** 已经有 widget 的工具列表（用于去重） */
+  /** List of tools that already have widgets (for deduplication) */
   toolsWithWidgets?: string[];
 
-  /** 自定义过滤函数 */
+  /** Custom filter function */
   customFilter?: (message: ClaudeStreamMessage) => boolean;
 }
 
 /**
- * 检查消息是否为 meta 消息
+ * Check if the message is a meta message
  */
 export function isMeta(message: ClaudeStreamMessage): boolean {
   return !!(message as any).isMeta;
 }
 
 /**
- * 检查消息是否有 leafUuid
+ * Check if the message has leafUuid
  */
 export function hasLeafUuid(message: ClaudeStreamMessage): boolean {
   return !!(message as any).leafUuid;
 }
 
 /**
- * 检查消息是否有 summary
+ * Check if the message has summary
  */
 export function hasSummary(message: ClaudeStreamMessage): boolean {
   return !!(message as any).summary;
 }
 
 /**
- * 检查用户消息是否为空
+ * Check if the user message is empty
  */
 export function isEmptyUserMessage(message: ClaudeStreamMessage): boolean {
   if (message.type !== 'user') {
@@ -58,17 +58,17 @@ export function isEmptyUserMessage(message: ClaudeStreamMessage): boolean {
 
   const content = message.message?.content;
 
-  // 没有内容
+  // No content
   if (!content) {
     return true;
   }
 
-  // 数组内容为空
+  // Array content is empty
   if (Array.isArray(content)) {
     return content.length === 0;
   }
 
-  // 字符串内容为空或只有空白字符
+  // String content is empty or only whitespace
   if (typeof content === 'string') {
     const strContent = content as string;
     return strContent.trim() === '';
@@ -78,7 +78,7 @@ export function isEmptyUserMessage(message: ClaudeStreamMessage): boolean {
 }
 
 /**
- * 检查消息是否为工具结果
+ * Check if the message is a tool result
  */
 export function isToolResultMessage(message: ClaudeStreamMessage): boolean {
   if (message.type !== 'user') {
@@ -90,12 +90,12 @@ export function isToolResultMessage(message: ClaudeStreamMessage): boolean {
     return false;
   }
 
-  // 检查是否包含 tool_result 类型的内容
+  // Check if it contains content of type tool_result
   return content.some((item: any) => item.type === 'tool_result');
 }
 
 /**
- * 从消息中提取工具结果的 tool_use_id 列表
+ * Extract the list of tool_use_id from tool result messages
  */
 export function extractToolUseIds(message: ClaudeStreamMessage): string[] {
   if (!isToolResultMessage(message)) {
@@ -109,9 +109,9 @@ export function extractToolUseIds(message: ClaudeStreamMessage): string[] {
 }
 
 /**
- * 检查工具结果是否应该被去重
- * @param message 消息对象
- * @param toolsWithWidgets 已经有 widget 的工具 ID 列表
+ * Check if the tool result should be deduplicated
+ * @param message Message object
+ * @param toolsWithWidgets List of tool IDs that already have widgets
  */
 export function shouldDeduplicateToolResult(message: ClaudeStreamMessage, toolsWithWidgets: string[]): boolean {
   if (!isToolResultMessage(message)) {
@@ -120,15 +120,15 @@ export function shouldDeduplicateToolResult(message: ClaudeStreamMessage, toolsW
 
   const toolUseIds = extractToolUseIds(message);
 
-  // 如果消息中的所有工具结果都已经有 widget，则去重
+  // Deduplicate if all tool results in the message already have widgets
   return toolUseIds.length > 0 && toolUseIds.every(id => toolsWithWidgets.includes(id));
 }
 
 /**
- * 过滤可显示的消息
- * @param messages 原始消息列表
- * @param options 过滤选项
- * @returns 过滤后的消息列表
+ * Filter displayable messages
+ * @param messages Original message list
+ * @param options Filter options
+ * @returns Filtered message list
  */
 export function filterDisplayableMessages(
   messages: ClaudeStreamMessage[],
@@ -143,22 +143,22 @@ export function filterDisplayableMessages(
   } = options;
 
   return messages.filter(message => {
-    // 1. 过滤 meta 消息（没有 leafUuid 和 summary）
+    // 1. Filter meta messages (without leafUuid and summary)
     if (hideMeta && isMeta(message) && !hasLeafUuid(message) && !hasSummary(message)) {
       return false;
     }
 
-    // 2. 过滤空内容的用户消息
+    // 2. Filter user messages with empty content
     if (hideEmptyUser && isEmptyUserMessage(message)) {
       return false;
     }
 
-    // 3. 去重工具结果消息
+    // 3. Deduplicate tool result messages
     if (deduplicateToolResults && shouldDeduplicateToolResult(message, toolsWithWidgets)) {
       return false;
     }
 
-    // 4. 自定义过滤函数
+    // 4. Custom filter function
     if (customFilter && !customFilter(message)) {
       return false;
     }
@@ -168,8 +168,8 @@ export function filterDisplayableMessages(
 }
 
 /**
- * 从消息列表中提取所有带 widget 的工具 ID
- * （用于工具结果去重）
+ * Extract all tool IDs with widgets from the message list
+ * (for tool result deduplication)
  */
 export function extractToolsWithWidgets(messages: ClaudeStreamMessage[]): string[] {
   const toolIds: string[] = [];
@@ -195,16 +195,16 @@ export function extractToolsWithWidgets(messages: ClaudeStreamMessage[]): string
 }
 
 /**
- * 智能过滤管道（自动提取 toolsWithWidgets）
- * @param messages 原始消息列表
- * @param options 过滤选项（会自动补充 toolsWithWidgets）
- * @returns 过滤后的消息列表
+ * Smart filtering pipeline (automatically extracts toolsWithWidgets)
+ * @param messages Original message list
+ * @param options Filter options (toolsWithWidgets will be automatically filled)
+ * @returns Filtered message list
  */
 export function smartFilterMessages(
   messages: ClaudeStreamMessage[],
   options: Omit<FilterOptions, 'toolsWithWidgets'> = {}
 ): ClaudeStreamMessage[] {
-  // 自动提取已有 widget 的工具列表
+  // Automatically extract the list of tools that already have widgets
   const toolsWithWidgets = extractToolsWithWidgets(messages);
 
   return filterDisplayableMessages(messages, {
@@ -214,19 +214,19 @@ export function smartFilterMessages(
 }
 
 /**
- * 过滤统计信息
+ * Filter statistics
  */
 export interface FilterStats {
-  /** 原始消息数量 */
+  /** Total number of original messages */
   total: number;
 
-  /** 过滤后的消息数量 */
+  /** Number of displayed messages after filtering */
   displayed: number;
 
-  /** 被过滤的消息数量 */
+  /** Number of filtered messages */
   filtered: number;
 
-  /** 按类型分组的过滤数量 */
+  /** Number of filtered messages grouped by type */
   filteredByType: {
     meta: number;
     emptyUser: number;
@@ -236,7 +236,7 @@ export interface FilterStats {
 }
 
 /**
- * 获取过滤统计信息
+ * Get filter statistics
  */
 export function getFilterStats(
   messages: ClaudeStreamMessage[],
@@ -269,7 +269,7 @@ export function getFilterStats(
       return;
     }
 
-    // 统计过滤原因
+    // Count filtering reasons
     if (hideMeta && isMeta(message) && !hasLeafUuid(message) && !hasSummary(message)) {
       stats.filteredByType.meta++;
     } else if (hideEmptyUser && isEmptyUserMessage(message)) {

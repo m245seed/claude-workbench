@@ -70,11 +70,11 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({
         content += '\n# Claude local settings (machine-specific)\n.claude/settings.local.json\n';
         await api.saveClaudeMdFile(gitignorePath, content);
         setGitIgnoreLocal(true);
-        setToast({ message: '已添加到 .gitignore', type: 'success' });
+        setToast({ message: 'Added to .gitignore', type: 'success' });
       }
     } catch (err) {
       console.error('Failed to update .gitignore:', err);
-      setToast({ message: '更新 .gitignore 失败', type: 'error' });
+      setToast({ message: 'Failed to update .gitignore', type: 'error' });
     }
   };
 
@@ -86,11 +86,11 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={onBack}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              返回
+              Back
             </Button>
             <div className="flex items-center gap-2">
               <Settings className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-xl font-semibold">项目设置</h2>
+              <h2 className="text-xl font-semibold">Project Settings</h2>
             </div>
           </div>
         </div>
@@ -110,15 +110,15 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({
             <TabsList className="mb-6">
               <TabsTrigger value="commands" className="gap-2">
                 <Command className="h-4 w-4" />
-                斜杠命令
+                Slash Commands
               </TabsTrigger>
               <TabsTrigger value="project" className="gap-2">
                 <GitBranch className="h-4 w-4" />
-                项目钩子
+                Project Hooks
               </TabsTrigger>
               <TabsTrigger value="local" className="gap-2">
                 <Shield className="h-4 w-4" />
-                本地钩子
+                Local Hooks
               </TabsTrigger>
             </TabsList>
 
@@ -126,11 +126,11 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({
               <Card className="p-6">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">项目斜杠命令</h3>
+                    <h3 className="text-lg font-semibold mb-2">Project Slash Commands</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      针对此项目的自定义命令。这些命令存储在
+                      Custom commands for this project. These commands are stored in
                       <code className="mx-1 px-2 py-1 bg-muted rounded text-xs">.claude/slash-commands/</code>
-                      中，可以提交到版本控制。
+                      and can be committed to version control.
                     </p>
                   </div>
                   
@@ -146,11 +146,11 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({
               <Card className="p-6">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">项目钩子</h3>
+                    <h3 className="text-lg font-semibold mb-2">Project Hooks</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      这些钩子适用于此项目上的所有用户。它们存储在
+                      These hooks apply to all users of this project. They are stored in
                       <code className="mx-1 px-2 py-1 bg-muted rounded text-xs">.claude/settings.json</code>
-                      中，应该提交到版本控制。
+                      and should be committed to version control.
                     </p>
                   </div>
                   
@@ -166,11 +166,11 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({
               <Card className="p-6">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">本地钩子</h3>
+                    <h3 className="text-lg font-semibold mb-2">Local Hooks</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      这些钩子只适用于您的机器。它们存储在
+                      These hooks only apply to your machine. They are stored in
                       <code className="mx-1 px-2 py-1 bg-muted rounded text-xs">.claude/settings.local.json</code>
-                      中，不应该提交到版本控制。
+                      and should not be committed to version control.
                     </p>
                     
                     {!gitIgnoreLocal && (
@@ -178,7 +178,7 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({
                         <AlertTriangle className="h-5 w-5 text-yellow-600" />
                         <div className="flex-1">
                           <p className="text-sm text-yellow-600">
-                            本地设置文件未在 .gitignore 中
+                            Local settings file is not in .gitignore
                           </p>
                         </div>
                         <Button
@@ -186,7 +186,7 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({
                           variant="outline"
                           onClick={addToGitIgnore}
                         >
-                          添加到 .gitignore
+                          Add to .gitignore
                         </Button>
                       </div>
                     )}
@@ -215,4 +215,4 @@ export const ProjectSettings: React.FC<ProjectSettingsProps> = ({
       </ToastContainer>
     </div>
   );
-}; 
+};

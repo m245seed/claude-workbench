@@ -12,22 +12,22 @@ import type { RewindCapabilities, RewindMode } from '@/lib/api';
 import { api } from '@/lib/api';
 
 interface UserMessageProps {
-  /** 消息数据 */
+  /** Message data */
   message: ClaudeStreamMessage;
-  /** 自定义类名 */
+  /** Custom class name */
   className?: string;
-  /** 提示词索引（只计算用户提示词） */
+  /** Prompt index (only counts user prompts) */
   promptIndex?: number;
   /** Session ID */
   sessionId?: string;
   /** Project ID */
   projectId?: string;
-  /** 撤回回调 */
+  /** Revert callback */
   onRevert?: (promptIndex: number, mode: RewindMode) => void;
 }
 
 /**
- * 检查是否是 Skills 消息
+ * Check if it's a Skills message
  */
 const isSkillsMessage = (text: string): boolean => {
   return text.includes('<command-name>') 
@@ -36,10 +36,10 @@ const isSkillsMessage = (text: string): boolean => {
 };
 
 /**
- * 格式化 Skills 消息显示
+ * Format Skills message display
  */
 const formatSkillsMessage = (text: string): React.ReactNode => {
-  // 提取 command-name 和 command-message
+  // Extract command-name and command-message
   const commandNameMatch = text.match(/<command-name>(.+?)<\/command-name>/);
   const commandMessageMatch = text.match(/<command-message>(.+?)<\/command-message>/);
   
@@ -61,7 +61,7 @@ const formatSkillsMessage = (text: string): React.ReactNode => {
     );
   }
   
-  // 处理 "Launching skill:" 格式
+  // Handle "Launching skill:" format
   if (text.includes('Launching skill:')) {
     const skillNameMatch = text.match(/Launching skill: (.+)/);
     if (skillNameMatch) {
@@ -83,7 +83,7 @@ const formatSkillsMessage = (text: string): React.ReactNode => {
 };
 
 /**
- * 提取用户消息的纯文本内容
+ * Extract plain text content from user message
  */
 const extractUserText = (message: ClaudeStreamMessage): string => {
   if (!message.message?.content) return '';
@@ -92,11 +92,11 @@ const extractUserText = (message: ClaudeStreamMessage): string => {
   
   let text = '';
   
-  // 如果是字符串，直接使用
+  // If it's a string, use directly
   if (typeof content === 'string') {
     text = content;
   } 
-  // 如果是数组，提取所有text类型的内容
+  // If it's an array, extract all text type content
   else if (Array.isArray(content)) {
     text = content
       .filter((item: any) => item.type === 'text')
@@ -104,24 +104,24 @@ const extractUserText = (message: ClaudeStreamMessage): string => {
       .join('\n');
   }
   
-  // ⚡ 关键修复：JSONL 保存为 \\n（双反斜杠），需要替换为真正的换行
-  // 正则 /\\\\n/ 匹配两个反斜杠+n
+  // ⚡ Key fix: JSONL saved as \\n (double backslash), needs to be replaced with real newline
+  // Regex /\\\\n/ matches two backslashes+n
   if (text.includes('\\')) {
     text = text
-      .replace(/\\\\n/g, '\n')      // \\n（双反斜杠+n）→ 换行符
-      .replace(/\\\\r/g, '\r')      // \\r → 回车
-      .replace(/\\\\t/g, '\t')      // \\t → 制表符
-      .replace(/\\\\"/g, '"')       // \\" → 双引号
-      .replace(/\\\\'/g, "'")       // \\' → 单引号
-      .replace(/\\\\\\\\/g, '\\');  // \\\\ → 单个反斜杠（最后处理）
+      .replace(/\\\\n/g, '\n')      // \\n (double backslash+n) → newline
+      .replace(/\\\\r/g, '\r')      // \\r → carriage return
+      .replace(/\\\\t/g, '\t')      // \\t → tab
+      .replace(/\\\\"/g, '"')       // \\" → double quote
+      .replace(/\\\\'/g, "'")       // \\' → single quote
+      .replace(/\\\\\\\\/g, '\\');  // \\\\ → single backslash (last)
   }
   
   return text;
 };
 
 /**
- * 用户消息组件
- * 右对齐气泡样式，简洁展示
+ * User message component
+ * Right-aligned bubble style, concise display
  */
 export const UserMessage: React.FC<UserMessageProps> = ({
   message,
@@ -136,14 +136,14 @@ export const UserMessage: React.FC<UserMessageProps> = ({
   const [capabilities, setCapabilities] = useState<RewindCapabilities | null>(null);
   const [isLoadingCapabilities, setIsLoadingCapabilities] = useState(false);
 
-  // 如果没有文本内容，不渲染
+  // If no text content, do not render
   if (!text) return null;
 
-  // ⚡ 检查是否是 Skills 消息
+  // ⚡ Check if it's a Skills message
   const isSkills = isSkillsMessage(text);
   const displayContent = isSkills ? formatSkillsMessage(text) : text;
 
-  // 检测撤回能力
+  // Check revert capabilities
   useEffect(() => {
     const loadCapabilities = async () => {
       if (promptIndex === undefined || !sessionId || !projectId) return;
@@ -185,16 +185,16 @@ export const UserMessage: React.FC<UserMessageProps> = ({
     <div className={cn("group relative", className)}>
       <MessageBubble variant="user">
           <div className="relative">
-        {/* 消息头部 */}
+        {/* Message header */}
         <MessageHeader
           variant="user"
           timestamp={message.timestamp}
           showAvatar={false}
         />
 
-        {/* 消息内容和撤回按钮 - 同一行显示 */}
+        {/* Message content and revert button - display in one row */}
         <div className="flex items-start gap-2">
-        {/* 消息内容 */}
+        {/* Message content */}
           <div className={cn(
             "text-sm leading-relaxed flex-1",
             isSkills ? "" : "whitespace-pre-wrap"
@@ -202,10 +202,10 @@ export const UserMessage: React.FC<UserMessageProps> = ({
             {displayContent}
             </div>
 
-          {/* 撤回按钮和警告图标 - Skills 消息不显示撤回按钮 */}
+          {/* Revert button and warning icon - do not show revert button for Skills messages */}
             {showRevertButton && !isSkills && (
             <div className="flex-shrink-0 flex items-center gap-1">
-              {/* CLI 提示词警告图标 */}
+              {/* CLI prompt warning icon */}
               {hasWarning && (
                 <TooltipProvider>
                   <Tooltip>
@@ -216,14 +216,14 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
                       <p className="text-sm">
-                        {capabilities?.warning || "此提示词无法回滚代码"}
+                        {capabilities?.warning || "This prompt cannot rollback code"}
                       </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
 
-              {/* 撤回按钮 */}
+              {/* Revert button */}
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -237,7 +237,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                       </Button>
                     </TooltipTrigger>
                   <TooltipContent side="top">
-                    撤回到此消息
+                    Revert to this message
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -248,22 +248,22 @@ export const UserMessage: React.FC<UserMessageProps> = ({
       </MessageBubble>
     </div>
 
-      {/* 撤回确认对话框 - 三模式选择 */}
+      {/* Revert confirmation dialog - three mode selection */}
       {showConfirmDialog && (
         <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-orange-600" />
-                选择撤回模式
+                Select revert mode
               </DialogTitle>
               <DialogDescription>
-                将撤回到提示词 #{(promptIndex ?? 0) + 1}，请选择撤回方式
+                Will revert to prompt #{(promptIndex ?? 0) + 1}, please select a revert mode
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
-              {/* CLI 提示词警告 */}
+              {/* CLI prompt warning */}
               {capabilities?.warning && (
                 <Alert className="border-orange-500/50 bg-orange-50 dark:bg-orange-950/20">
                   <AlertTriangle className="h-4 w-4 text-orange-600" />
@@ -273,19 +273,19 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                 </Alert>
               )}
 
-              {/* 加载中状态 */}
+              {/* Loading state */}
               {isLoadingCapabilities && (
                 <div className="flex items-center justify-center py-4">
-                  <div className="text-sm text-muted-foreground">检测撤回能力中...</div>
+                  <div className="text-sm text-muted-foreground">Checking revert capabilities...</div>
                 </div>
               )}
 
-              {/* 三种模式选择 */}
+              {/* Three mode selection */}
               {!isLoadingCapabilities && capabilities && (
                 <div className="space-y-3">
-                  <div className="text-sm font-medium">选择撤回内容：</div>
+                  <div className="text-sm font-medium">Select revert content:</div>
 
-                  {/* 模式1: 仅对话 */}
+                  {/* Mode 1: Conversation only */}
                   <div className={cn(
                     "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200",
                     "hover:border-primary hover:bg-accent/50 hover:shadow-md hover:scale-[1.02]",
@@ -295,18 +295,18 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                   >
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <div className="font-medium">仅删除对话</div>
+                        <div className="font-medium">Delete conversation only</div>
                         <div className="text-sm text-muted-foreground">
-                          删除此消息及之后的所有对话，代码保持不变
+                          Delete this message and all following conversations, code remains unchanged
                         </div>
                       </div>
                       <div className="text-xs text-green-600 font-medium bg-green-50 dark:bg-green-950 px-2 py-1 rounded">
-                        总是可用
+                        Always available
                       </div>
                     </div>
                   </div>
 
-                  {/* 模式2: 仅代码 */}
+                  {/* Mode 2: Code only */}
                   <div className={cn(
                     "p-4 rounded-lg border-2 transition-all duration-200",
                     capabilities.code
@@ -317,9 +317,9 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                   >
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <div className="font-medium">仅回滚代码</div>
+                        <div className="font-medium">Rollback code only</div>
                         <div className="text-sm text-muted-foreground">
-                          代码回滚到此消息前的状态，保留对话记录
+                          Code will rollback to the state before this message, conversation history will be kept
                         </div>
                       </div>
                       <div className={cn(
@@ -328,12 +328,12 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                           ? "text-green-600 bg-green-50 dark:bg-green-950"
                           : "text-muted-foreground bg-muted"
                       )}>
-                        {capabilities.code ? "可用" : "不可用"}
+                        {capabilities.code ? "Available" : "Unavailable"}
                       </div>
                     </div>
                   </div>
 
-                  {/* 模式3: 两者都撤回 */}
+                  {/* Mode 3: Both */}
                   <div className={cn(
                     "p-4 rounded-lg border-2 transition-all duration-200",
                     capabilities.both
@@ -344,9 +344,9 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                   >
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <div className="font-medium">完整撤回</div>
+                        <div className="font-medium">Full revert</div>
                         <div className="text-sm text-muted-foreground">
-                          删除对话并回滚代码，恢复到此消息前的完整状态
+                          Delete conversation and rollback code, restore to the complete state before this message
                         </div>
                       </div>
                       <div className={cn(
@@ -355,7 +355,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                           ? "text-green-600 bg-green-50 dark:bg-green-950"
                           : "text-muted-foreground bg-muted"
                       )}>
-                        {capabilities.both ? "可用" : "不可用"}
+                        {capabilities.both ? "Available" : "Unavailable"}
                       </div>
                     </div>
                   </div>
@@ -365,7 +365,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>警告：</strong>此操作不可撤销，删除的对话无法恢复。
+                  <strong>Warning:</strong> This action is irreversible. Deleted conversations cannot be recovered.
                 </AlertDescription>
               </Alert>
             </div>
@@ -375,7 +375,7 @@ export const UserMessage: React.FC<UserMessageProps> = ({
                 variant="outline"
                 onClick={() => setShowConfirmDialog(false)}
               >
-                取消
+                Cancel
               </Button>
             </DialogFooter>
           </DialogContent>

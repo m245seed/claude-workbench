@@ -5,15 +5,15 @@ import { normalizeUsageData } from '@/lib/utils';
 import type { ClaudeStreamMessage } from '@/types/claude';
 
 /**
- * useSessionLifecycle Hook
+ * Session lifecycle hook
  *
- * 管理会话生命周期，包括：
- * - 加载会话历史
- * - 检查活跃会话
- * - 重连到活跃会话
- * - 事件监听器管理
+ * Manage session lifecycle, including:
+ * - Loading session history
+ * - Checking active session
+ * - Reconnecting to active session
+ * - Event listener management
  *
- * 从 ClaudeCodeSession.tsx 提取（Phase 3）
+ * Extracted from ClaudeCodeSession.tsx (Phase 3)
  */
 
 interface UseSessionLifecycleConfig {
@@ -54,7 +54,7 @@ export function useSessionLifecycle(config: UseSessionLifecycleConfig): UseSessi
   } = config;
 
   /**
-   * 加载会话历史记录
+   * Load session history
    */
   const loadSessionHistory = useCallback(async () => {
     if (!session) return;
@@ -116,13 +116,13 @@ export function useSessionLifecycle(config: UseSessionLifecycleConfig): UseSessi
       // After loading history, we're continuing a conversation
     } catch (err) {
       console.error("Failed to load session history:", err);
-      setError("加载会话历史记录失败");
+      setError("Failed to load session history");
       setIsLoading(false);
     }
   }, [session, setIsLoading, setError, setMessages, setRawJsonlOutput, initializeProgressiveTranslation]);
 
   /**
-   * 检查会话是否仍在活跃状态
+   * Check if the session is still active
    */
   const checkForActiveSession = useCallback(async () => {
     // If we have a session prop, check if it's still active
@@ -155,7 +155,7 @@ export function useSessionLifecycle(config: UseSessionLifecycleConfig): UseSessi
   }, [session, setClaudeSessionId]);
 
   /**
-   * 重新连接到活跃会话
+   * Reconnect to active session
    */
   const reconnectToSession = useCallback(async (sessionId: string) => {
     console.log('[useSessionLifecycle] Reconnecting to session:', sessionId);

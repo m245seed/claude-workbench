@@ -1,35 +1,35 @@
 /**
- * 提示词上下文配置服务
- * 管理提示词优化时的上下文提取配置
+ * Prompt context configuration service
+ * Manages context extraction configuration for prompt optimization
  */
 
 export interface PromptContextConfig {
   /**
-   * 提取的最大消息数量
+   * Maximum number of messages to extract
    * @default 15
    */
   maxMessages: number;
   
   /**
-   * 助手消息的最大字符长度（超过会被截断）
+   * Maximum character length for assistant messages (truncated if exceeded)
    * @default 2000
    */
   maxAssistantMessageLength: number;
   
   /**
-   * 用户消息的最大字符长度（超过会被截断）
+   * Maximum character length for user messages (truncated if exceeded)
    * @default 1000
    */
   maxUserMessageLength: number;
   
   /**
-   * 是否包含执行结果
+   * Whether to include execution results
    * @default true
    */
   includeExecutionResults: boolean;
   
   /**
-   * 执行结果的最大字符长度
+   * Maximum character length for execution results
    * @default 500
    */
   maxExecutionResultLength: number;
@@ -38,7 +38,7 @@ export interface PromptContextConfig {
 const STORAGE_KEY = 'prompt_context_config';
 
 /**
- * 默认配置
+ * Default configuration
  */
 export const DEFAULT_CONTEXT_CONFIG: PromptContextConfig = {
   maxMessages: 15,
@@ -49,12 +49,12 @@ export const DEFAULT_CONTEXT_CONFIG: PromptContextConfig = {
 };
 
 /**
- * 预设配置模板
+ * Preset configuration templates
  */
 export const CONTEXT_PRESETS = {
   minimal: {
-    name: '精简模式',
-    description: '最少上下文，适合简单任务',
+    name: 'Minimal Mode',
+    description: 'Minimal context, suitable for simple tasks',
     config: {
       maxMessages: 5,
       maxAssistantMessageLength: 500,
@@ -64,13 +64,13 @@ export const CONTEXT_PRESETS = {
     } as PromptContextConfig,
   },
   balanced: {
-    name: '平衡模式',
-    description: '默认配置，适合大多数场景',
+    name: 'Balanced Mode',
+    description: 'Default configuration, suitable for most scenarios',
     config: DEFAULT_CONTEXT_CONFIG,
   },
   detailed: {
-    name: '详细模式',
-    description: '完整上下文，适合复杂任务',
+    name: 'Detailed Mode',
+    description: 'Full context, suitable for complex tasks',
     config: {
       maxMessages: 30,
       maxAssistantMessageLength: 5000,
@@ -82,7 +82,7 @@ export const CONTEXT_PRESETS = {
 };
 
 /**
- * 加载配置
+ * Load configuration
  */
 export function loadContextConfig(): PromptContextConfig {
   try {
@@ -92,7 +92,7 @@ export function loadContextConfig(): PromptContextConfig {
     }
     
     const config = JSON.parse(stored) as PromptContextConfig;
-    // 合并默认值，确保新增字段有默认值
+    // Merge default values to ensure new fields have defaults
     return {
       ...DEFAULT_CONTEXT_CONFIG,
       ...config,
@@ -104,7 +104,7 @@ export function loadContextConfig(): PromptContextConfig {
 }
 
 /**
- * 保存配置
+ * Save configuration
  */
 export function saveContextConfig(config: PromptContextConfig): void {
   try {
@@ -115,14 +115,14 @@ export function saveContextConfig(config: PromptContextConfig): void {
 }
 
 /**
- * 重置为默认配置
+ * Reset to default configuration
  */
 export function resetContextConfig(): void {
   saveContextConfig(DEFAULT_CONTEXT_CONFIG);
 }
 
 /**
- * 应用预设配置
+ * Apply preset configuration
  */
 export function applyPreset(presetKey: keyof typeof CONTEXT_PRESETS): void {
   const preset = CONTEXT_PRESETS[presetKey];

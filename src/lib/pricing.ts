@@ -1,8 +1,8 @@
 /**
- * 统一的 Claude 模型定价模块
+ * Unified Claude model pricing module
  * 
- * 根据官方文档：https://docs.claude.com/en/docs/claude-code/costs
- * 价格单位：美元/百万 tokens
+ * According to the official documentation: https://docs.claude.com/en/docs/claude-code/costs
+ * Price unit: USD per million tokens
  */
 
 export interface ModelPricing {
@@ -13,8 +13,8 @@ export interface ModelPricing {
 }
 
 /**
- * 模型定价常量（每百万 tokens）
- * 来源：Anthropic 官方定价
+ * Model pricing constants (per million tokens)
+ * Source: Anthropic official pricing
  */
 export const MODEL_PRICING: Record<string, ModelPricing> = {
   // Claude 4.1 Opus
@@ -51,9 +51,9 @@ export const MODEL_PRICING: Record<string, ModelPricing> = {
 };
 
 /**
- * 根据模型名称获取定价
- * @param model - 模型名称或标识符
- * @returns 模型定价对象
+ * Get pricing by model name
+ * @param model - Model name or identifier
+ * @returns Model pricing object
  */
 export function getPricingForModel(model?: string): ModelPricing {
   if (!model) {
@@ -82,10 +82,10 @@ export function getPricingForModel(model?: string): ModelPricing {
 }
 
 /**
- * 计算单个消息的成本
- * @param tokens - token 使用统计
- * @param model - 模型名称
- * @returns 成本（美元）
+ * Calculate the cost of a single message
+ * @param tokens - Token usage statistics
+ * @param model - Model name
+ * @returns Cost (USD)
  */
 export function calculateMessageCost(
   tokens: {
@@ -107,14 +107,14 @@ export function calculateMessageCost(
 }
 
 /**
- * 格式化成本显示
- * @param amount - 成本金额（美元）
- * @returns 格式化的字符串
+ * Format cost display
+ * @param amount - Cost amount (USD)
+ * @returns Formatted string
  */
 export function formatCost(amount: number): string {
   if (amount === 0) return '$0.00';
   if (amount < 0.01) {
-    // 小于 1 美分时显示为美分
+    // Show as cents if less than 1 cent
     const cents = amount * 100;
     return `$${cents.toFixed(3)}¢`;
   }
@@ -122,9 +122,9 @@ export function formatCost(amount: number): string {
 }
 
 /**
- * 格式化时长
- * @param seconds - 秒数
- * @returns 格式化的时长字符串（如 "6m 19s" 或 "6h 33m"）
+ * Format duration
+ * @param seconds - Number of seconds
+ * @returns Formatted duration string (e.g. "6m 19s" or "6h 33m")
  */
 export function formatDuration(seconds: number): string {
   if (seconds < 60) {

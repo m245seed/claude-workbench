@@ -24,7 +24,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // 加载初始数据
+  // Load initial data
   useEffect(() => {
     loadData();
   }, []);
@@ -42,7 +42,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
       setConfig(configData);
       setCacheStats(statsData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '加载翻译设置失败');
+      setError(err instanceof Error ? err.message : 'Failed to load translation settings');
       console.error('Failed to load translation settings:', err);
     } finally {
       setLoading(false);
@@ -60,10 +60,10 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
       await api.updateTranslationConfig(config);
       await translationMiddleware.updateConfig(config);
       
-      setSuccess('翻译配置保存成功！');
+      setSuccess('Translation configuration saved successfully!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存配置失败');
+      setError(err instanceof Error ? err.message : 'Failed to save configuration');
       console.error('Failed to save translation config:', err);
     } finally {
       setSaving(false);
@@ -73,9 +73,9 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
   const handleTestConnection = async () => {
     if (!config) return;
 
-    // 检查API密钥是否已配置
+    // Check if API key is configured
     if (!config.api_key.trim()) {
-      setError('请先填写API密钥');
+      setError('Please enter the API key first');
       return;
     }
 
@@ -86,11 +86,11 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
       // 测试翻译功能
       await api.translateText('Hello', 'zh');
       
-      setSuccess('翻译服务连接测试成功！');
+      setSuccess('Translation service connection test succeeded!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '连接测试失败';
-      setError(`连接测试失败: ${errorMessage}`);
+      const errorMessage = err instanceof Error ? err.message : 'Connection test failed';
+      setError(`Connection test failed: ${errorMessage}`);
       console.error('Translation connection test failed:', err);
     } finally {
       setTestingConnection(false);
@@ -103,12 +103,12 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
       setError(null);
       
       await api.clearTranslationCache();
-      await loadData(); // 重新加载缓存统计
+      await loadData(); // Reload cache stats
       
-      setSuccess('翻译缓存清空成功！');
+      setSuccess('Translation cache cleared successfully!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '清空缓存失败');
+      setError(err instanceof Error ? err.message : 'Failed to clear cache');
       console.error('Failed to clear translation cache:', err);
     } finally {
       setClearingCache(false);
@@ -124,7 +124,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-6 w-6 animate-spin mr-2" />
-        <span>加载翻译设置中...</span>
+        <span>Loading translation settings...</span>
       </div>
     );
   }
@@ -133,7 +133,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
     return (
       <Alert>
         <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>无法加载翻译配置</AlertDescription>
+        <AlertDescription>Unable to load translation configuration</AlertDescription>
       </Alert>
     );
   }
@@ -143,11 +143,11 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Languages className="h-6 w-6" />
-          <h2 className="text-2xl font-bold">智能翻译设置</h2>
+          <h2 className="text-2xl font-bold">Smart Translation Settings</h2>
         </div>
         {onClose && (
           <Button variant="outline" onClick={onClose}>
-            关闭
+            Close
           </Button>
         )}
       </div>
@@ -165,21 +165,21 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
         </Alert>
       )}
 
-      {/* 基本设置 */}
+      {/* Basic Settings */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Settings className="h-5 w-5" />
-            <span>基本设置</span>
+            <span>Basic Settings</span>
           </CardTitle>
           <CardDescription>
-            配置智能翻译中间件，实现中英文透明翻译
+            Configure the smart translation middleware for seamless Chinese-English translation
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <Label htmlFor="translation-enabled" className="text-sm font-medium">
-              启用智能翻译
+              Enable Smart Translation
             </Label>
             <Switch
               id="translation-enabled"
@@ -190,7 +190,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="api-base-url">API 基础URL</Label>
+              <Label htmlFor="api-base-url">API Base URL</Label>
               <Input
                 id="api-base-url"
                 value={config.api_base_url}
@@ -200,7 +200,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="model">翻译模型</Label>
+              <Label htmlFor="model">Translation Model</Label>
               <Input
                 id="model"
                 value={config.model}
@@ -210,7 +210,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="timeout">请求超时（秒）</Label>
+              <Label htmlFor="timeout">Request Timeout (seconds)</Label>
               <Input
                 id="timeout"
                 type="number"
@@ -222,7 +222,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cache-ttl">缓存有效期（秒）</Label>
+              <Label htmlFor="cache-ttl">Cache TTL (seconds)</Label>
               <Input
                 id="cache-ttl"
                 type="number"
@@ -236,9 +236,9 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
 
           <div className="space-y-2">
             <Label htmlFor="api-key" className="flex items-center space-x-2">
-              <span>API 密钥</span>
+              <span>API Key</span>
               {!config.api_key && (
-                <Badge variant="destructive" className="text-xs">必填</Badge>
+                <Badge variant="destructive" className="text-xs">Required</Badge>
               )}
             </Label>
             <Input
@@ -246,19 +246,19 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
               type="password"
               value={config.api_key}
               onChange={(e) => handleConfigChange('api_key', e.target.value)}
-              placeholder="请输入您的 Silicon Flow API 密钥"
+              placeholder="Enter your Silicon Flow API key"
               className={!config.api_key ? "border-red-300" : ""}
             />
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">
-                用于访问 Silicon Flow 翻译API的密钥
+                Used to access the Silicon Flow translation API
               </p>
               <p className="text-xs text-blue-600">
-                💡 获取API密钥：访问 <a href="https://cloud.siliconflow.cn" target="_blank" className="underline hover:text-blue-800">https://cloud.siliconflow.cn</a> 注册账号并获取免费API密钥
+                💡 Get API key: Visit <a href="https://cloud.siliconflow.cn" target="_blank" className="underline hover:text-blue-800">https://cloud.siliconflow.cn</a> to register and get a free API key
               </p>
               {!config.api_key && (
                 <p className="text-xs text-red-600">
-                  ⚠️ 未配置API密钥时翻译功能将无法工作
+                  ⚠️ Translation will not work without an API key
                 </p>
               )}
             </div>
@@ -270,7 +270,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
               disabled={saving}
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              保存配置
+              Save Configuration
             </Button>
 
             <Button
@@ -279,7 +279,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
               disabled={testingConnection || !config.enabled || !config.api_key.trim()}
             >
               {testingConnection && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              测试连接
+              Test Connection
             </Button>
           </div>
           
@@ -287,30 +287,30 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
             <Alert className="mt-4">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                <strong>需要配置API密钥：</strong>
+                <strong>API key required:</strong>
                 <br />
-                1. 访问 <a href="https://cloud.siliconflow.cn" target="_blank" className="text-blue-600 underline hover:text-blue-800">Silicon Flow官网</a> 注册账号
+                1. Visit <a href="https://cloud.siliconflow.cn" target="_blank" className="text-blue-600 underline hover:text-blue-800">Silicon Flow official site</a> to register
                 <br />
-                2. 在控制台创建API密钥
+                2. Create an API key in the console
                 <br />
-                3. 将密钥填写到上方输入框中
+                3. Enter the key in the input above
                 <br />
-                4. 保存配置并测试连接
+                4. Save configuration and test connection
               </AlertDescription>
             </Alert>
           )}
         </CardContent>
       </Card>
 
-      {/* 缓存管理 */}
+      {/* Cache Management */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Database className="h-5 w-5" />
-            <span>缓存管理</span>
+            <span>Cache Management</span>
           </CardTitle>
           <CardDescription>
-            管理翻译结果缓存，提高响应速度
+            Manage translation result cache to improve response speed
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -321,26 +321,26 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
                   <div className="text-2xl font-bold text-blue-600">
                     {cacheStats.total_entries}
                   </div>
-                  <div className="text-sm text-muted-foreground">总缓存条目</div>
+                  <div className="text-sm text-muted-foreground">Total Cache Entries</div>
                 </div>
                 
                 <div className="text-center p-4 border rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
                     {cacheStats.active_entries}
                   </div>
-                  <div className="text-sm text-muted-foreground">有效缓存</div>
+                  <div className="text-sm text-muted-foreground">Active Cache</div>
                 </div>
                 
                 <div className="text-center p-4 border rounded-lg">
                   <div className="text-2xl font-bold text-yellow-600">
                     {cacheStats.expired_entries}
                   </div>
-                  <div className="text-sm text-muted-foreground">过期缓存</div>
+                  <div className="text-sm text-muted-foreground">Expired Cache</div>
                 </div>
               </div>
             ) : (
               <div className="text-center text-muted-foreground">
-                无法获取缓存统计信息
+                Unable to get cache statistics
               </div>
             )}
 
@@ -355,7 +355,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
                 ) : (
                   <RefreshCw className="mr-2 h-4 w-4" />
                 )}
-                刷新统计
+                Refresh Stats
               </Button>
               
               <Button
@@ -364,51 +364,51 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({ onClos
                 disabled={clearingCache}
               >
                 {clearingCache && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                清空缓存
+                Clear Cache
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 使用说明 */}
+      {/* Usage Instructions */}
       <Card>
         <CardHeader>
-          <CardTitle>使用说明</CardTitle>
+          <CardTitle>Usage Instructions</CardTitle>
           <CardDescription>
-            了解智能翻译中间件的工作原理
+            Learn how the smart translation middleware works
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium text-sm mb-2">功能特点</h4>
+              <h4 className="font-medium text-sm mb-2">Features</h4>
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li><strong>透明翻译</strong>: 用户体验与直接中文对话一致</li>
-                <li><strong>智能检测</strong>: 自动识别中英文语言</li>
-                <li><strong>双向翻译</strong>: 中文输入→英文发送，英文响应→中文显示</li>
-                <li><strong>缓存优化</strong>: 相同翻译结果本地缓存，提高响应速度</li>
-                <li><strong>降级保护</strong>: 翻译失败时自动使用原文，确保功能可用</li>
+                <li><strong>Transparent Translation</strong>: User experience is the same as direct Chinese conversation</li>
+                <li><strong>Smart Detection</strong>: Automatically detects Chinese and English</li>
+                <li><strong>Bidirectional Translation</strong>: Chinese input → English send, English response → Chinese display</li>
+                <li><strong>Cache Optimization</strong>: Local cache for identical translation results, improves response speed</li>
+                <li><strong>Fallback Protection</strong>: Uses original text if translation fails, ensures functionality</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-medium text-sm mb-2">工作流程</h4>
+              <h4 className="font-medium text-sm mb-2">Workflow</h4>
               <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>用户输入中文提示词</li>
-                <li>中间件检测到中文，自动翻译为英文</li>
-                <li>将英文发送给Claude API</li>
-                <li>Claude返回英文响应</li>
-                <li>中间件将英文响应翻译为中文</li>
-                <li>用户看到中文响应</li>
+                <li>User enters a Chinese prompt</li>
+                <li>Middleware detects Chinese and automatically translates to English</li>
+                <li>Send English to Claude API</li>
+                <li>Claude returns English response</li>
+                <li>Middleware translates English response to Chinese</li>
+                <li>User sees Chinese response</li>
               </ol>
             </div>
 
             <div className="flex items-center space-x-2 pt-2">
-              <Badge variant="secondary">版本: 1.0.0</Badge>
-              <Badge variant="outline">模型: Hunyuan-MT-7B</Badge>
+              <Badge variant="secondary">Version: 1.0.0</Badge>
+              <Badge variant="outline">Model: Hunyuan-MT-7B</Badge>
               <Badge variant={config.enabled ? "default" : "secondary"}>
-                状态: {config.enabled ? "已启用" : "已禁用"}
+                Status: {config.enabled ? "Enabled" : "Disabled"}
               </Badge>
             </div>
           </div>

@@ -3,21 +3,21 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface MessageBubbleProps {
-  /** 消息类型：用户或AI */
+  /** Message type: user or assistant */
   variant: "user" | "assistant";
-  /** 子内容 */
+  /** Child content */
   children: React.ReactNode;
-  /** 自定义类名 */
+  /** Custom class name */
   className?: string;
-  /** 是否正在流式输出 */
+  /** Whether it is streaming output */
   isStreaming?: boolean;
 }
 
 /**
- * 消息气泡容器组件
+ * Message bubble container component
  * 
- * 用户消息：右对齐气泡样式
- * AI消息：左对齐卡片样式
+ * User message: right-aligned bubble style
+ * Assistant message: left-aligned card style
  */
 const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
   variant,
@@ -33,13 +33,13 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "flex w-full mb-6", // 恢复 mb-6 确保消息间距
+        "flex w-full mb-6", // Restore mb-6 to ensure spacing between messages
         isUser ? "justify-end" : "justify-start",
         className
       )}
     >
       {isUser ? (
-        // 用户消息：紧凑气泡样式
+        // User message: compact bubble style
         <div className="flex flex-col items-end max-w-[85%] sm:max-w-[70%]">
           <div
             className={cn(
@@ -53,7 +53,7 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({
           </div>
         </div>
       ) : (
-        // AI消息：全宽卡片样式
+        // AI message: full-width card style
         <div className="flex flex-col w-full max-w-full">
           <div
             className={cn(

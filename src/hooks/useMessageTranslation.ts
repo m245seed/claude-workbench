@@ -6,15 +6,15 @@ import { normalizeUsageData } from '@/lib/utils';
 import type { ClaudeStreamMessage } from '@/types/claude';
 
 /**
- * useMessageTranslation Hook
+ * Message translation hook
  *
- * 管理消息翻译系统，包括：
- * - 实时消息翻译处理
- * - 渐进式历史消息翻译
- * - 8种内容提取策略
- * - 翻译状态管理
+ * Manages the message translation system, including:
+ * - Real-time message translation processing
+ * - Progressive historical message translation
+ * - 8 content extraction strategies
+ * - Translation state management
  *
- * 从 ClaudeCodeSession.tsx 提取（Phase 3）
+ * Extracted from ClaudeCodeSession.tsx (Phase 3)
  */
 
 interface UseMessageTranslationConfig {
@@ -43,7 +43,7 @@ export function useMessageTranslation(config: UseMessageTranslationConfig): UseM
   const [translationStates, setTranslationStates] = useState<TranslationState>({});
 
   /**
-   * 处理翻译完成回调
+   * Translation completion callback handler
    */
   const handleTranslationComplete = useCallback((
     messageId: string,
@@ -76,7 +76,7 @@ export function useMessageTranslation(config: UseMessageTranslationConfig): UseM
   }, [onMessagesUpdate]);
 
   /**
-   * 应用翻译结果到消息对象
+   * Apply translation result to message object
    */
   const applyTranslationToMessage = useCallback((
     message: ClaudeStreamMessage,
@@ -125,7 +125,7 @@ export function useMessageTranslation(config: UseMessageTranslationConfig): UseM
   }, []);
 
   /**
-   * 处理单个消息的翻译（支持8种内容提取策略）
+   * Translate a single message (supports 8 content extraction strategies)
    */
   const processMessageWithTranslation = useCallback(async (
     message: ClaudeStreamMessage,
@@ -147,7 +147,7 @@ export function useMessageTranslation(config: UseMessageTranslationConfig): UseM
       try {
         const isEnabled = await translationMiddleware.isEnabled();
 
-        // 使用传递的翻译结果或状态中的结果
+        // Use passed translation result or result in state
         const effectiveTranslationResult = currentTranslationResult || lastTranslationResult;
 
         console.log('[useMessageTranslation] Translation debug:', {
@@ -410,7 +410,7 @@ export function useMessageTranslation(config: UseMessageTranslationConfig): UseM
   }, [isMountedRef, lastTranslationResult, onMessagesUpdate]);
 
   /**
-   * 初始化渐进式翻译（后台翻译历史消息）
+   * Initialize progressive translation (translate historical messages in the background)
    */
   const initializeProgressiveTranslation = useCallback(async (messages: ClaudeStreamMessage[]): Promise<void> => {
     try {

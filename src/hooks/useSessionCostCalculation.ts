@@ -1,8 +1,8 @@
 /**
- * 会话成本计算 Hook
+ * Session cost calculation hook
  *
- * 优化：支持多模型定价，符合官方 Claude Code 规范
- * 参考：https://docs.claude.com/en/docs/claude-code/costs
+ * Optimization: Supports multi-model pricing, complies with official Claude Code specification
+ * Reference: https://docs.claude.com/en/docs/claude-code/costs
  */
 
 import { useMemo } from 'react';
@@ -11,45 +11,45 @@ import { formatCost as formatCostUtil, formatDuration } from '@/lib/pricing';
 import type { ClaudeStreamMessage } from '@/types/claude';
 
 export interface SessionCostStats {
-  /** 总成本（美元） */
+  /** Total cost (USD) */
   totalCost: number;
-  /** 总 tokens */
+  /** Total tokens */
   totalTokens: number;
-  /** 输入 tokens */
+  /** Input tokens */
   inputTokens: number;
-  /** 输出 tokens */
+  /** Output tokens */
   outputTokens: number;
-  /** Cache 读取 tokens */
+  /** Cache read tokens */
   cacheReadTokens: number;
-  /** Cache 写入 tokens */
+  /** Cache write tokens */
   cacheWriteTokens: number;
-  /** 会话时长（秒） - wall time */
+  /** Session duration (seconds) - wall time */
   durationSeconds: number;
-  /** API 执行时长（秒） - 累计所有 API 调用时间 */
+  /** API execution duration (seconds) - total time for all API calls */
   apiDurationSeconds: number;
 }
 
 interface SessionCostResult {
-  /** 成本统计 */
+  /** Cost statistics */
   stats: SessionCostStats;
-  /** 格式化成本字符串 */
+  /** Format cost string */
   formatCost: (amount: number) => string;
-  /** 格式化时长字符串 */
+  /** Format duration string */
   formatDuration: (seconds: number) => string;
 }
 
 /**
- * 计算会话的 Token 成本和统计
+ * Calculate the token cost and statistics of a session
  *
- * @param messages - 会话消息列表
- * @returns 成本统计对象
+ * @param messages - List of session messages
+ * @returns Cost statistics object
  *
  * @example
  * const { stats, formatCost } = useSessionCostCalculation(messages);
  * console.log(formatCost(stats.totalCost)); // "$0.0123"
  */
 export function useSessionCostCalculation(messages: ClaudeStreamMessage[]): SessionCostResult {
-  // 计算总成本和统计
+  // Calculate total cost and statistics
   const stats = useMemo(() => {
     if (messages.length === 0) {
       return {
@@ -73,9 +73,9 @@ export function useSessionCostCalculation(messages: ClaudeStreamMessage[]): Sess
 
     const durationSeconds = calculateSessionDuration(messages, firstEventTimestampMs, lastEventTimestampMs);
 
-    // 计算 API 执行时长（TODO: 需要从消息中提取实际 API 响应时间）
-    // 目前使用简化估算：每条唯一 assistant 消息平均 2-10 秒
-    const apiDurationSeconds = events.length * 5; // 粗略估算
+    // Calculate API execution duration (TODO: Needs to extract actual API response time from messages)
+    // Currently uses a simplified estimate: 2-10 seconds per unique assistant message on average
+    const apiDurationSeconds = events.length * 5; // Rough estimate
 
     return {
       totalCost: totals.totalCost,

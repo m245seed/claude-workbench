@@ -1,11 +1,10 @@
+
 /**
- * Claude 主题的语法高亮主题
- * 采用橙色、紫色和紫罗兰色以匹配 Claude 的美学风格
  * Claude-themed syntax highlighting themes
+ * Uses orange, purple, and violet colors to match Claude's aesthetic
  * Features orange, purple, and violet colors to match Claude's aesthetic
  */
 
-// 深色主题（默认）
 // Dark theme (default)
 export const claudeSyntaxTheme: any = {
   'code[class*="language-"]': {
@@ -179,7 +178,6 @@ export const claudeSyntaxTheme: any = {
   },
 };
 
-// 浅色主题
 // Light theme
 export const claudeSyntaxThemeLight: any = {
   'code[class*="language-"]': {
@@ -353,8 +351,7 @@ export const claudeSyntaxThemeLight: any = {
   },
 };
 
-// 根据当前主题获取适当主题的函数
-// Function to get the appropriate theme based on current theme
+// Function to get the appropriate theme based on the current theme
 export const getClaudeSyntaxTheme = (isDark: boolean = true) => {
   return isDark ? claudeSyntaxTheme : claudeSyntaxThemeLight;
 };

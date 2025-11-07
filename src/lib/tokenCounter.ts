@@ -1,16 +1,16 @@
 /**
  * Official Claude Token Counter Service
  *
- * 基于Claude官方Token Count API的准确token计算服务
- * 支持所有消息类型和Claude模型的精确token统计和成本计算
+ * Accurate token calculation service based on Claude official Token Count API
+ * Supports precise token statistics and cost calculation for all message types and Claude models
  *
- * 2025年最新官方定价和Claude 4系列模型支持
+ * 2025 latest official pricing and Claude 4 series model support
  */
 
 import Anthropic from '@anthropic-ai/sdk';
 import { api } from './api';
 
-// 官方定价 (每百万token) - 2025年1月最新定价
+// Official pricing (per million tokens) - Latest as of Jan 2025
 export const CLAUDE_PRICING = {
   'claude-opus-4': {
     input: 15.0,
@@ -66,7 +66,7 @@ export const CLAUDE_PRICING = {
     cache_write: 1.0,
     cache_read: 0.08,
   },
-  // 向后兼容
+  // Backward compatibility
   'claude-3-opus-20240229': {
     input: 15.0,
     output: 75.0,
@@ -79,7 +79,7 @@ export const CLAUDE_PRICING = {
     cache_write: 3.75,
     cache_read: 0.30,
   },
-  // 默认值
+  // Default value
   'default': {
     input: 3.0,
     output: 15.0,
@@ -88,7 +88,7 @@ export const CLAUDE_PRICING = {
   }
 } as const;
 
-// 标准化模型名称映射
+// Standardized model name mapping
 export const MODEL_ALIASES = {
   'opus': 'claude-opus-4',
   'opus4': 'claude-opus-4',
@@ -98,7 +98,7 @@ export const MODEL_ALIASES = {
   'sonnet-4': 'claude-sonnet-4',
 } as const;
 
-// Token使用统计接口
+// Token usage statistics interface
 export interface TokenUsage {
   input_tokens?: number;
   output_tokens?: number;
@@ -108,7 +108,7 @@ export interface TokenUsage {
   cache_read_tokens?: number;
 }
 
-// 消息接口
+// Message interface
 export interface ClaudeMessage {
   role: 'user' | 'assistant' | 'system';
   content: string | Array<{
@@ -122,7 +122,7 @@ export interface ClaudeMessage {
   }>;
 }
 
-// 工具定义接口
+// Tool definition interface
 export interface ClaudeTool {
   name: string;
   description: string;
@@ -133,14 +133,14 @@ export interface ClaudeTool {
   };
 }
 
-// Token计算响应接口
+// Token calculation response interface
 export interface TokenCountResponse {
   input_tokens: number;
   cache_creation_input_tokens?: number;
   cache_read_input_tokens?: number;
 }
 
-// 成本分析结果
+// Cost analysis result
 export interface CostBreakdown {
   input_cost: number;
   output_cost: number;
@@ -150,7 +150,7 @@ export interface CostBreakdown {
   total: number; // 向后兼容字段
 }
 
-// Token明细分析
+// Token breakdown analysis
 export interface TokenBreakdown {
   total: number;
   input: number;
@@ -174,11 +174,11 @@ export class TokenCounterService {
   }
 
   /**
-   * 初始化Anthropic客户端
+   * Initialize Anthropic client
    */
   private async initialize() {
     try {
-      // 从多个来源获取API密钥
+      // Get API key from multiple sources
       this.apiKey = this.getApiKey();
       this.baseURL = this.getBaseURL();
 
@@ -192,28 +192,28 @@ export class TokenCounterService {
         });
       }
     } catch (error) {
-      console.warn('[TokenCounter] 初始化失败，将使用估算方法:', error);
+      console.warn('[TokenCounter] Initialization failed, falling back to estimation method:', error);
     }
   }
 
   /**
-   * 获取API密钥
+   * Get API key
    */
   private getApiKey(): string | null {
     // 1. 环境变量
     if (typeof window !== 'undefined') {
-      // 浏览器环境
-      return null; // 浏览器中不应直接使用API密钥
+      // Browser environment
+      return null; // API key should not be used directly in browser
     }
 
-    // Node.js环境
+    // Node.js environment
     return process.env.ANTHROPIC_API_KEY ||
            process.env.ANTHROPIC_AUTH_TOKEN ||
            null;
   }
 
   /**
-   * 获取基础URL
+   * Get base URL
    */
   private getBaseURL(): string | null {
     if (typeof window !== 'undefined') {
@@ -226,31 +226,31 @@ export class TokenCounterService {
   }
 
   /**
-   * 标准化模型名称
+   * Normalize model name
    */
   public normalizeModel(model?: string): string {
     if (!model) return 'claude-3-5-sonnet-20241022';
 
     const normalized = model.toLowerCase().replace(/-/g, '').replace(/\./g, '');
 
-    // 检查别名映射
+    // Check alias mapping
     for (const [alias, fullName] of Object.entries(MODEL_ALIASES)) {
       if (normalized.includes(alias.toLowerCase().replace(/-/g, '').replace(/\./g, ''))) {
         return fullName;
       }
     }
 
-    // 模型名称模式匹配
+    // Model name pattern matching
     if (model.includes('opus')) return 'claude-opus-4';
     if (model.includes('sonnet') && model.includes('4')) return 'claude-sonnet-4';
     if (model.includes('sonnet') && model.includes('3.7')) return 'claude-sonnet-3.7';
     if (model.includes('sonnet')) return 'claude-3-5-sonnet-20241022';
 
-    return model; // 返回原始名称
+    return model; // Return original name
   }
 
   /**
-   * 使用官方API计算token数量
+   * Calculate token count using official API
    */
   async countTokens(
     messages: ClaudeMessage[],
@@ -260,7 +260,7 @@ export class TokenCounterService {
   ): Promise<TokenCountResponse> {
     const normalizedModel = this.normalizeModel(model);
 
-    // 如果客户端不可用，使用估算方法
+    // If client is not available, use estimation method
     if (!this.client) {
       return this.estimateTokens(messages, tools, systemPrompt);
     }
@@ -290,13 +290,13 @@ export class TokenCounterService {
         cache_read_input_tokens: (response as any).cache_read_input_tokens,
       };
     } catch (error) {
-      console.warn('[TokenCounter] API调用失败，使用估算方法:', error);
+      console.warn('[TokenCounter] API call failed, using estimation method:', error);
       return this.estimateTokens(messages, tools, systemPrompt);
     }
   }
 
   /**
-   * 降级估算方法（当API不可用时）
+   * Fallback estimation method (when API is unavailable)
    */
   private estimateTokens(
     messages: ClaudeMessage[],
@@ -305,29 +305,29 @@ export class TokenCounterService {
   ): TokenCountResponse {
     let totalTokens = 0;
 
-    // 估算消息token
+    // Estimate message tokens
     for (const message of messages) {
       if (typeof message.content === 'string') {
-        totalTokens += Math.ceil(message.content.length / 4); // 粗略估算：4字符=1token
+        totalTokens += Math.ceil(message.content.length / 4); // Rough estimate: 4 chars = 1 token
       } else if (Array.isArray(message.content)) {
         for (const content of message.content) {
           if (content.type === 'text' && content.text) {
             totalTokens += Math.ceil(content.text.length / 4);
           } else if (content.type === 'image') {
-            totalTokens += 1551; // 基于官方文档的图像token估算
+            totalTokens += 1551; // Estimate for image tokens based on official docs
           } else if (content.type === 'document') {
-            totalTokens += 2188; // 基于官方文档的PDF token估算
+            totalTokens += 2188; // Estimate for PDF tokens based on official docs
           }
         }
       }
     }
 
-    // 估算系统提示token
+    // Estimate system prompt tokens
     if (systemPrompt) {
       totalTokens += Math.ceil(systemPrompt.length / 4);
     }
 
-    // 估算工具定义token
+    // Estimate tool definition tokens
     if (tools && tools.length > 0) {
       const toolsJson = JSON.stringify(tools);
       totalTokens += Math.ceil(toolsJson.length / 4);
@@ -339,7 +339,7 @@ export class TokenCounterService {
   }
 
   /**
-   * 批量计算token（并行处理）
+   * Batch token calculation (parallel processing)
    */
   async batchCountTokens(
     requests: Array<{
@@ -355,8 +355,8 @@ export class TokenCounterService {
       );
       return await Promise.all(promises);
     } catch (error) {
-      console.error('[TokenCounter] 批量计算失败:', error);
-      // 降级到逐个计算
+      console.error('[TokenCounter] Batch calculation failed:', error);
+      // Fallback to individual calculation
       const results: TokenCountResponse[] = [];
       for (const req of requests) {
         try {
@@ -371,14 +371,14 @@ export class TokenCounterService {
   }
 
   /**
-   * 计算成本
+   * Calculate cost
    */
   calculateCost(usage: TokenUsage, model?: string): CostBreakdown {
     const normalizedModel = this.normalizeModel(model);
     const pricing = CLAUDE_PRICING[normalizedModel as keyof typeof CLAUDE_PRICING];
 
     if (!pricing) {
-      console.warn(`[TokenCounter] 未知模型定价: ${normalizedModel}`);
+      console.warn(`[TokenCounter] Unknown model pricing: ${normalizedModel}`);
       return {
         input_cost: 0,
         output_cost: 0,
@@ -411,7 +411,7 @@ export class TokenCounterService {
   }
 
   /**
-   * 获取详细的token明细分析
+   * Get detailed token breakdown analysis
    */
   calculateBreakdown(usage: TokenUsage, model?: string): TokenBreakdown {
     const normalized = this.normalizeUsage(usage);
@@ -422,9 +422,9 @@ export class TokenCounterService {
 
     const cache_hit_rate = total > 0 ? ((normalized.cache_read_tokens || 0) / total) * 100 : 0;
 
-    // 计算缓存节约的成本
+    // Calculate cache cost savings
     const standard_cost = ((normalized.cache_read_tokens || 0) *
-                          (CLAUDE_PRICING[this.normalizeModel(model) as keyof typeof CLAUDE_PRICING]?.input || 3)) / 1_000_000;
+                (CLAUDE_PRICING[this.normalizeModel(model) as keyof typeof CLAUDE_PRICING]?.input || 3)) / 1_000_000;
     const actual_cache_cost = cost.cache_read_cost;
     const cost_savings = standard_cost - actual_cache_cost;
 
@@ -443,7 +443,7 @@ export class TokenCounterService {
   }
 
   /**
-   * 标准化token使用数据
+   * Normalize token usage data
    */
   normalizeUsage(usage: TokenUsage): Required<TokenUsage> {
     return {
@@ -457,7 +457,7 @@ export class TokenCounterService {
   }
 
   /**
-   * 格式化token数量显示
+   * Format token count for display
    */
   formatCount(count: number): string {
     if (count >= 1_000_000) {
@@ -469,7 +469,7 @@ export class TokenCounterService {
   }
 
   /**
-   * 格式化成本显示
+   * Format cost for display
    */
   formatCost(cost: number): string {
     if (cost >= 1) {
@@ -485,7 +485,7 @@ export class TokenCounterService {
   }
 
   /**
-   * 格式化token明细显示
+   * Format token breakdown for display
    */
   formatBreakdown(
     usage: TokenUsage,
@@ -522,7 +522,7 @@ export class TokenCounterService {
   }
 
   /**
-   * 创建详细的工具提示内容
+   * Create detailed tooltip content
    */
   createTooltip(usage: TokenUsage, model?: string): string {
     const breakdown = this.calculateBreakdown(usage, model);
@@ -531,74 +531,74 @@ export class TokenCounterService {
 
     const lines: string[] = [];
 
-    lines.push(`模型: ${normalizedModel}`);
-    lines.push(`总Token: ${breakdown.total.toLocaleString()}`);
+    lines.push(`Model: ${normalizedModel}`);
+    lines.push(`Total Tokens: ${breakdown.total.toLocaleString()}`);
     lines.push('');
 
-    // Token明细
+    // Token breakdown
     if (breakdown.input > 0) {
-      lines.push(`输入Token: ${breakdown.input.toLocaleString()}`);
+      lines.push(`Input Tokens: ${breakdown.input.toLocaleString()}`);
     }
     if (breakdown.output > 0) {
-      lines.push(`输出Token: ${breakdown.output.toLocaleString()}`);
+      lines.push(`Output Tokens: ${breakdown.output.toLocaleString()}`);
     }
     if (breakdown.cache_write > 0) {
-      lines.push(`缓存写入: ${breakdown.cache_write.toLocaleString()}`);
+      lines.push(`Cache Write: ${breakdown.cache_write.toLocaleString()}`);
     }
     if (breakdown.cache_read > 0) {
-      lines.push(`缓存读取: ${breakdown.cache_read.toLocaleString()}`);
+      lines.push(`Cache Read: ${breakdown.cache_read.toLocaleString()}`);
     }
 
-    // 成本明细
+    // Cost breakdown
     if (breakdown.cost.total_cost > 0) {
       lines.push('');
-      lines.push(`总成本: ${this.formatCost(breakdown.cost.total_cost)}`);
+      lines.push(`Total Cost: ${this.formatCost(breakdown.cost.total_cost)}`);
 
       if (breakdown.cost.input_cost > 0) {
-        lines.push(`输入成本: ${this.formatCost(breakdown.cost.input_cost)}`);
+        lines.push(`Input Cost: ${this.formatCost(breakdown.cost.input_cost)}`);
       }
       if (breakdown.cost.output_cost > 0) {
-        lines.push(`输出成本: ${this.formatCost(breakdown.cost.output_cost)}`);
+        lines.push(`Output Cost: ${this.formatCost(breakdown.cost.output_cost)}`);
       }
       if (breakdown.cost.cache_write_cost > 0) {
-        lines.push(`缓存写入成本: ${this.formatCost(breakdown.cost.cache_write_cost)}`);
+        lines.push(`Cache Write Cost: ${this.formatCost(breakdown.cost.cache_write_cost)}`);
       }
       if (breakdown.cost.cache_read_cost > 0) {
-        lines.push(`缓存读取成本: ${this.formatCost(breakdown.cost.cache_read_cost)}`);
+        lines.push(`Cache Read Cost: ${this.formatCost(breakdown.cost.cache_read_cost)}`);
       }
     }
 
-    // 效率指标
+    // Efficiency metrics
     if (breakdown.efficiency.cache_hit_rate > 0) {
       lines.push('');
-      lines.push(`缓存命中率: ${breakdown.efficiency.cache_hit_rate.toFixed(1)}%`);
+      lines.push(`Cache Hit Rate: ${breakdown.efficiency.cache_hit_rate.toFixed(1)}%`);
       if (breakdown.efficiency.cost_savings > 0) {
-        lines.push(`成本节约: ${this.formatCost(breakdown.efficiency.cost_savings)}`);
+        lines.push(`Cost Savings: ${this.formatCost(breakdown.efficiency.cost_savings)}`);
       }
     }
 
-    // 定价信息
+    // Pricing info
     if (pricing) {
       lines.push('');
-      lines.push('定价 (每百万token):');
-      lines.push(`输入: $${pricing.input}`);
-      lines.push(`输出: $${pricing.output}`);
-      lines.push(`缓存写入: $${pricing.cache_write}`);
-      lines.push(`缓存读取: $${pricing.cache_read}`);
+      lines.push('Pricing (per million tokens):');
+      lines.push(`Input: $${pricing.input}`);
+      lines.push(`Output: $${pricing.output}`);
+      lines.push(`Cache Write: $${pricing.cache_write}`);
+      lines.push(`Cache Read: $${pricing.cache_read}`);
     }
 
     return lines.join('\n');
   }
 
   /**
-   * 获取支持的模型列表
+   * Get supported model list
    */
   getSupportedModels(): string[] {
     return Object.keys(CLAUDE_PRICING);
   }
 
   /**
-   * 聚合多个token使用数据
+   * Aggregate multiple token usage data
    */
   aggregateUsage(usages: TokenUsage[]): TokenUsage {
     return usages.reduce(
@@ -618,7 +618,7 @@ export class TokenCounterService {
   }
 
   /**
-   * 检查API是否可用
+   * Check if API is available
    */
   isApiAvailable(): boolean {
     return this.client !== null;
@@ -642,10 +642,10 @@ export interface SessionTokenStats {
   };
 }
 
-// 导出单例实例
+// Export singleton instance
 export const tokenCounter = new TokenCounterService();
 
-// 便利函数导出
+// Convenience function exports
 export const countTokens = (messages: ClaudeMessage[], model?: string, tools?: ClaudeTool[], systemPrompt?: string) =>
   tokenCounter.countTokens(messages, model, tools, systemPrompt);
 
@@ -653,7 +653,7 @@ export const calculateCost = (usage: TokenUsage, model?: string) =>
   tokenCounter.calculateCost(usage, model);
 
 /**
- * 向后兼容的函数保留
+ * Backward compatible function
  * Normalize usage data from different API response formats
  */
 export function normalizeTokenUsage(usage: any): TokenUsage {
@@ -661,7 +661,7 @@ export function normalizeTokenUsage(usage: any): TokenUsage {
 }
 
 /**
- * 向后兼容的函数保留
+ * Backward compatible function
  * Get model pricing configuration
  */
 export function getModelPricing(model?: string) {

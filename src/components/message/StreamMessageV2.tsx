@@ -20,18 +20,18 @@ interface StreamMessageV2Props {
 }
 
 /**
- * StreamMessage V2 - 重构版消息渲染组件
+ * StreamMessage V2 - Refactored message rendering component
  *
- * 使用新的气泡式布局和组件架构
- * Phase 1: 基础消息显示 ✓
- * Phase 2: 工具调用折叠 ✓（已在 ToolCallsGroup 中实现）
- * Phase 3: 工具注册中心集成 ✓（已集成 toolRegistry）
+ * Using new bubble-style layout and component architecture
+ * Phase 1: Basic message display ✓
+ * Phase 2: Tool call folding ✓ (already implemented in ToolCallsGroup)
+ * Phase 3: Tool registry center integration ✓ (already integrated toolRegistry)
  *
- * 架构说明：
- * - user 消息 → UserMessage 组件
- * - assistant 消息 → AIMessage 组件（集成 ToolCallsGroup + 思考块）
- * - system / result / summary → 对应消息组件
- * - 其他消息类型（meta 等）默认忽略
+ * Architecture description:
+ * - user message → UserMessage component
+ * - assistant message → AIMessage component (integrated ToolCallsGroup + thinking blocks)
+ * - system / result / summary → corresponding message components
+ * - Other message types (meta, etc.) are ignored by default
  */
 export const StreamMessageV2: React.FC<StreamMessageV2Props> = ({
   message,

@@ -16,13 +16,13 @@ struct UsageCacheEntry {
     file_hash: String,
 }
 
-// 全局缓存 - 线程安全
+// Global cache - thread-safe
 lazy_static::lazy_static! {
     static ref USAGE_CACHE: Arc<Mutex<HashMap<String, UsageCacheEntry>>> = 
         Arc::new(Mutex::new(HashMap::new()));
 }
 
-const CACHE_TTL_SECONDS: u64 = 300; // 5分钟缓存
+const CACHE_TTL_SECONDS: u64 = 300; // 5 minute cache
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ClaudeSettings {
@@ -297,7 +297,7 @@ fn calculate_cost(model: &str, usage: &UsageData) -> f64 {
                 SONNET_35_CACHE_READ_PRICE,
             )
         } else {
-            // Return 0 for unknown models to avoid incorrect cost estimations (旧版本逻辑)
+            // Return 0 for unknown models to avoid incorrect cost estimations (Old version logic)
             (0.0, 0.0, 0.0, 0.0)
         };
 
@@ -347,12 +347,12 @@ fn parse_jsonl_file(
                 if let Ok(entry) = serde_json::from_value::<JsonlEntry>(json_value.clone()) {
                     if let Some(message) = &entry.message {
                         if let Some(usage) = &message.usage {
-                            // 智能去重策略：结合两个版本的优点（最真实的统计方式）
+                            // Smart deduplication strategy: combine the advantages of both versions (most realistic statistics)
                             let has_io_tokens = usage.input_tokens.unwrap_or(0) > 0 || usage.output_tokens.unwrap_or(0) > 0;
                             let has_cache_tokens = usage.cache_creation_input_tokens.unwrap_or(0) > 0 || usage.cache_read_input_tokens.unwrap_or(0) > 0;
                             
                             if has_io_tokens {
-                                // 对输入输出token使用严格去重（确保准确性）
+                                // Use strict deduplication for input/output tokens (ensure accuracy)
                                 if let Some(msg_id) = &message.id {
                                     let unique_hash = format!("io:{}:{}", session_id, msg_id);
                                     if processed_hashes.contains(&unique_hash) {
@@ -361,7 +361,7 @@ fn parse_jsonl_file(
                                     processed_hashes.insert(unique_hash);
                                 }
                             } else if has_cache_tokens {
-                                // 对缓存token使用旧版本宽松去重（保持准确性）
+                                // Use loose deduplication for cached tokens (maintain accuracy)
                                 if let (Some(msg_id), Some(req_id)) = (&message.id, &entry.request_id) {
                                     let unique_hash = format!("cache:{}:{}", msg_id, req_id);
                                     if processed_hashes.contains(&unique_hash) {
@@ -445,7 +445,7 @@ fn get_all_usage_entries_optimized(claude_path: &PathBuf) -> Vec<UsageEntry> {
     let mut processed_hashes = HashSet::new();
     let projects_dir = claude_path.join("projects");
 
-    // 使用 Vec 存储文件路径和修改时间，以便批量处理
+    // Use Vec to store file paths and modification times for batch processing
     let mut files_to_process: Vec<(PathBuf, String, SystemTime)> = Vec::new();
 
     if let Ok(projects) = fs::read_dir(&projects_dir) {
@@ -454,7 +454,7 @@ fn get_all_usage_entries_optimized(claude_path: &PathBuf) -> Vec<UsageEntry> {
                 let project_name = project.file_name().to_string_lossy().to_string();
                 let project_path = project.path();
 
-                // 使用更高效的文件遍历
+                // Use more efficient file traversal
                 if let Ok(walker) = std::fs::read_dir(&project_path) {
                     for entry in walker.flatten() {
                         let path = entry.path();
@@ -471,17 +471,17 @@ fn get_all_usage_entries_optimized(claude_path: &PathBuf) -> Vec<UsageEntry> {
         }
     }
 
-    // 按修改时间排序，优先处理最新文件
+    // Sort by modification time, process newest files first
     files_to_process.sort_by_key(|(_, _, modified)| std::cmp::Reverse(*modified));
 
-    // 批量处理文件，限制内存使用
+    // Batch process files, limit memory usage
     const BATCH_SIZE: usize = 10;
     for batch in files_to_process.chunks(BATCH_SIZE) {
         for (path, project_name, _) in batch {
             let entries = parse_jsonl_file_fast(path, project_name, &mut processed_hashes);
             all_entries.extend(entries);
             
-            // 每批处理后检查内存使用（简单限制）
+            // Check memory usage after each batch (simple limit)
             if all_entries.len() > 50000 {
                 log::warn!("Usage entries limit reached, stopping early to prevent memory issues");
                 break;
@@ -489,13 +489,13 @@ fn get_all_usage_entries_optimized(claude_path: &PathBuf) -> Vec<UsageEntry> {
         }
     }
 
-    // 只保留最近的条目排序（提升性能）
+    // Only keep recent entries sorted (performance improvement)
     all_entries.sort_unstable_by(|a, b| b.timestamp.cmp(&a.timestamp));
 
     all_entries
 }
 
-// 优化的JSON解析函数
+// Optimized JSON parsing function
 fn parse_jsonl_file_fast(
     path: &PathBuf,
     encoded_project_name: &str,
@@ -504,7 +504,7 @@ fn parse_jsonl_file_fast(
     let mut entries = Vec::new();
     let mut actual_project_path: Option<String> = None;
 
-    // 使用 BufReader 提升大文件读取性能
+    // Use BufReader to improve large file reading performance
     let file = match std::fs::File::open(path) {
         Ok(f) => f,
         Err(_) => return entries,
@@ -513,7 +513,7 @@ fn parse_jsonl_file_fast(
     let reader = std::io::BufReader::new(file);
     use std::io::BufRead;
 
-    // 提取session ID
+    // Extract session ID
     let session_id = path
         .parent()
         .and_then(|p| p.file_name())
@@ -522,7 +522,7 @@ fn parse_jsonl_file_fast(
         .to_string();
 
     let mut line_count = 0;
-    const MAX_LINES_PER_FILE: usize = 10000; // 限制单文件处理行数
+    const MAX_LINES_PER_FILE: usize = 10000; // Limit single file processing lines
 
     for line_result in reader.lines() {
         line_count += 1;
@@ -541,20 +541,20 @@ fn parse_jsonl_file_fast(
             continue;
         }
 
-        // 快速JSON解析
+        // Fast JSON parsing
         let json_value: serde_json::Value = match serde_json::from_str(&line) {
             Ok(v) => v,
             Err(_) => continue,
         };
 
-        // 提取项目路径（只在第一次）
+        // Extract project path (only for the first time)
         if actual_project_path.is_none() {
             if let Some(cwd) = json_value.get("cwd").and_then(|v| v.as_str()) {
                 actual_project_path = Some(cwd.to_string());
             }
         }
 
-        // 快速解析usage数据
+        // Fast parsing of usage data
         if let Some(message) = json_value.get("message") {
             if let Some(usage) = message.get("usage") {
                 let input_tokens = usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0);
@@ -562,12 +562,12 @@ fn parse_jsonl_file_fast(
                 let cache_creation_tokens = usage.get("cache_creation_input_tokens").and_then(|v| v.as_u64()).unwrap_or(0);
                 let cache_read_tokens = usage.get("cache_read_input_tokens").and_then(|v| v.as_u64()).unwrap_or(0);
                 
-                // 跳过无意义的条目
+                // Skip meaningless entries
                 if input_tokens == 0 && output_tokens == 0 && cache_creation_tokens == 0 && cache_read_tokens == 0 {
                     continue;
                 }
 
-                // 简化去重逻辑
+                // Simplify deduplication logic
                 if let Some(msg_id) = message.get("id").and_then(|v| v.as_str()) {
                     let unique_hash = format!("{}:{}", session_id, msg_id);
                     if processed_hashes.contains(&unique_hash) {
@@ -578,7 +578,7 @@ fn parse_jsonl_file_fast(
 
                 let model_str = message.get("model").and_then(|v| v.as_str()).unwrap_or("unknown");
                 
-                // 快速成本计算
+                // Fast cost calculation
                 let cost = if let Some(cost_usd) = json_value.get("costUSD").and_then(|v| v.as_f64()) {
                     cost_usd
                 } else {
@@ -608,7 +608,7 @@ fn parse_jsonl_file_fast(
     entries
 }
 
-// 优化的成本计算函数
+// Optimized cost calculation function
 fn calculate_cost_fast(model: &str, input_tokens: u64, output_tokens: u64, cache_creation_tokens: u64, cache_read_tokens: u64) -> f64 {
     let (input_price, output_price, cache_write_price, cache_read_price) = match model {
         m if m.contains("opus-4") || m.contains("claude-opus-4") =>
@@ -622,7 +622,7 @@ fn calculate_cost_fast(model: &str, input_tokens: u64, output_tokens: u64, cache
         _ => (0.0, 0.0, 0.0, 0.0),
     };
 
-    // 直接计算，避免不必要的类型转换
+    // Direct calculation, avoid unnecessary type conversion
     ((input_tokens as f64 * input_price) +
      (output_tokens as f64 * output_price) +
      (cache_creation_tokens as f64 * cache_write_price) +
@@ -674,13 +674,13 @@ pub fn get_usage_stats(days: Option<u32>) -> Result<UsageStats, String> {
         .ok_or("Failed to get home directory")?
         .join(".claude");
 
-    // 生成缓存键
+    // Generate cache key
     let cache_key = format!("usage_stats_{}", days.unwrap_or(0));
     
-    // 检查缓存
+    // Check cache
     let current_hash = get_directory_hash(&claude_path)?;
     
-    // 尝试从缓存获取
+    // Try to get from cache
     if let Ok(cache) = USAGE_CACHE.lock() {
         if let Some(cached_entry) = cache.get(&cache_key) {
             if is_cache_valid(cached_entry, &current_hash) {
@@ -690,7 +690,7 @@ pub fn get_usage_stats(days: Option<u32>) -> Result<UsageStats, String> {
         }
     }
 
-    // 使用优化的数据获取函数
+    // Use optimized data retrieval function
     let all_entries = get_all_usage_entries_optimized(&claude_path);
 
     if all_entries.is_empty() {
@@ -708,7 +708,7 @@ pub fn get_usage_stats(days: Option<u32>) -> Result<UsageStats, String> {
             by_api_base_url: vec![],
         };
         
-        // 缓存空结果
+        // Cache empty results
         if let Ok(mut cache) = USAGE_CACHE.lock() {
             cache.insert(cache_key, UsageCacheEntry {
                 data: empty_stats.clone(),
@@ -737,10 +737,10 @@ pub fn get_usage_stats(days: Option<u32>) -> Result<UsageStats, String> {
         all_entries
     };
 
-    // 使用优化的统计计算
+    // Use optimized statistics calculation
     let stats = calculate_usage_stats_fast(&filtered_entries);
     
-    // 缓存结果
+    // Cache results
     if let Ok(mut cache) = USAGE_CACHE.lock() {
         cache.insert(cache_key, UsageCacheEntry {
             data: stats.clone(),
@@ -748,7 +748,7 @@ pub fn get_usage_stats(days: Option<u32>) -> Result<UsageStats, String> {
             file_hash: current_hash,
         });
         
-        // 限制缓存大小
+        // Limit cache size
         if cache.len() > 20 {
             let keys_to_remove: Vec<String> = cache.keys().take(5).cloned().collect();
             for key in keys_to_remove {
@@ -760,15 +760,15 @@ pub fn get_usage_stats(days: Option<u32>) -> Result<UsageStats, String> {
     Ok(stats)
 }
 
-// 优化的统计计算函数
+// Optimized statistics calculation function
 fn calculate_usage_stats_fast(filtered_entries: &[UsageEntry]) -> UsageStats {
-    // 预分配容量以提升性能
+    // Pre-allocate capacity to improve performance
     let mut model_stats: HashMap<String, ModelUsage> = HashMap::with_capacity(10);
     let mut daily_stats: HashMap<String, DailyUsage> = HashMap::with_capacity(100);
     let mut project_stats: HashMap<String, ProjectUsage> = HashMap::with_capacity(50);
     let mut api_base_url_stats: HashMap<String, ApiBaseUrlUsage> = HashMap::with_capacity(5);
     
-    // 使用 HashSet 来跟踪唯一会话，预分配容量
+    // Use HashSet to track unique sessions, pre-allocate capacity
     let mut unique_sessions: HashSet<String> = HashSet::with_capacity(1000);
     let mut model_sessions: HashMap<String, HashSet<String>> = HashMap::with_capacity(10);
     let mut project_sessions: HashMap<String, HashSet<String>> = HashMap::with_capacity(50);
@@ -781,35 +781,35 @@ fn calculate_usage_stats_fast(filtered_entries: &[UsageEntry]) -> UsageStats {
     let mut total_cache_read_tokens = 0u64;
 
     for entry in filtered_entries {
-        // 累计总计
+        // Cumulative total
         total_cost += entry.cost;
         total_input_tokens += entry.input_tokens;
         total_output_tokens += entry.output_tokens;
         total_cache_creation_tokens += entry.cache_creation_tokens;
         total_cache_read_tokens += entry.cache_read_tokens;
 
-        // 跟踪唯一会话
+        // Track unique sessions
         unique_sessions.insert(entry.session_id.clone());
         
-        // 模型会话跟踪
+        // Model session tracking
         model_sessions
             .entry(entry.model.clone())
             .or_insert_with(|| HashSet::with_capacity(100))
             .insert(entry.session_id.clone());
             
-        // 项目会话跟踪
+        // Project session tracking
         project_sessions
             .entry(entry.project_path.clone())
             .or_insert_with(|| HashSet::with_capacity(50))
             .insert(entry.session_id.clone());
             
-        // API会话跟踪
+        // API session tracking
         api_sessions
             .entry(entry.api_base_url.clone())
             .or_insert_with(|| HashSet::with_capacity(10))
             .insert(entry.session_id.clone());
 
-        // 更新模型统计
+        // Update model statistics
         let model_stat = model_stats.entry(entry.model.clone()).or_insert_with(|| ModelUsage {
             model: entry.model.clone(),
             total_cost: 0.0,
@@ -829,7 +829,7 @@ fn calculate_usage_stats_fast(filtered_entries: &[UsageEntry]) -> UsageStats {
         model_stat.total_tokens = model_stat.input_tokens + model_stat.output_tokens 
             + model_stat.cache_creation_tokens + model_stat.cache_read_tokens;
 
-        // 更新日统计
+        // Update daily statistics
         let date = entry.timestamp.split('T').next().unwrap_or(&entry.timestamp).to_string();
         let daily_stat = daily_stats.entry(date.clone()).or_insert_with(|| DailyUsage {
             date,
@@ -846,7 +846,7 @@ fn calculate_usage_stats_fast(filtered_entries: &[UsageEntry]) -> UsageStats {
             daily_stat.models_used.push(entry.model.clone());
         }
 
-        // 更新项目统计
+        // Update project statistics
         let project_name = entry.project_path.split('/').last().unwrap_or(&entry.project_path).to_string();
         let project_stat = project_stats.entry(entry.project_path.clone()).or_insert_with(|| ProjectUsage {
             project_path: entry.project_path.clone(),
@@ -865,7 +865,7 @@ fn calculate_usage_stats_fast(filtered_entries: &[UsageEntry]) -> UsageStats {
             project_stat.last_used = entry.timestamp.clone();
         }
 
-        // 更新API URL统计
+        // Update API URL statistics
         let api_stat = api_base_url_stats.entry(entry.api_base_url.clone()).or_insert_with(|| ApiBaseUrlUsage {
             api_base_url: entry.api_base_url.clone(),
             total_cost: 0.0,
@@ -890,7 +890,7 @@ fn calculate_usage_stats_fast(filtered_entries: &[UsageEntry]) -> UsageStats {
         + total_cache_creation_tokens + total_cache_read_tokens;
     let total_sessions = unique_sessions.len() as u64;
 
-    // 设置会话计数并转换为已排序的向量
+    // Set session count and convert to sorted vector
     let mut by_model: Vec<ModelUsage> = model_stats.into_iter().map(|(model, mut stat)| {
         stat.session_count = model_sessions.get(&model).map(|s| s.len()).unwrap_or(0) as u64;
         stat
@@ -927,7 +927,7 @@ fn calculate_usage_stats_fast(filtered_entries: &[UsageEntry]) -> UsageStats {
     }
 }
 
-// 分页统计数据结构
+// Paginated statistics data structure
 #[allow(dead_code)]
 #[derive(Debug, Serialize)]
 pub struct PaginatedUsageStats {
@@ -938,11 +938,11 @@ pub struct PaginatedUsageStats {
     total_cache_creation_tokens: u64,
     total_cache_read_tokens: u64,
     total_sessions: u64,
-    // 分页数据
+    // Paginated data
     by_model: PaginatedData<ModelUsage>,
     by_project: PaginatedData<ProjectUsage>,
     by_api_base_url: PaginatedData<ApiBaseUrlUsage>,
-    by_date: Vec<DailyUsage>, // 日期数据通常不多，不需要分页
+    by_date: Vec<DailyUsage>, // Date data is usually not much, no pagination needed
 }
 
 #[allow(dead_code)]
@@ -966,15 +966,15 @@ pub struct UsageOverview {
     top_project: Option<String>,
 }
 
-// 快速概览统计（加载速度最快）
+// Quick overview statistics (fastest loading)
 #[command]
 pub fn get_usage_overview() -> Result<UsageOverview, String> {
     let claude_path = dirs::home_dir()
         .ok_or("Failed to get home directory")?
         .join(".claude");
 
-    // 只加载最近的数据进行概览统计
-    let recent_entries = get_recent_usage_entries(&claude_path, 1000)?; // 最多1000条记录
+    // Only load recent data for overview statistics
+    let recent_entries = get_recent_usage_entries(&claude_path, 1000)?; // Up to 1000 records
     
     if recent_entries.is_empty() {
         return Ok(UsageOverview {
@@ -1039,7 +1039,7 @@ pub fn get_usage_overview() -> Result<UsageOverview, String> {
     })
 }
 
-// 获取最近的usage entries（限制数量）
+// Get recent usage entries (limited quantity)
 fn get_recent_usage_entries(claude_path: &PathBuf, limit: usize) -> Result<Vec<UsageEntry>, String> {
     let mut all_entries = Vec::with_capacity(limit);
     let mut processed_hashes = HashSet::new();
@@ -1049,7 +1049,7 @@ fn get_recent_usage_entries(claude_path: &PathBuf, limit: usize) -> Result<Vec<U
         return Ok(all_entries);
     }
 
-    // 获取所有JSONL文件并按修改时间排序
+    // Get all JSONL files and sort by modification time
     let mut files_with_time: Vec<(PathBuf, String, SystemTime)> = Vec::new();
 
     if let Ok(projects) = fs::read_dir(&projects_dir) {
@@ -1074,23 +1074,23 @@ fn get_recent_usage_entries(claude_path: &PathBuf, limit: usize) -> Result<Vec<U
         }
     }
 
-    // 按修改时间倒序排序，优先处理最新文件
+    // Sort by modification time in descending order, process newest files first
     files_with_time.sort_by_key(|(_, _, modified)| std::cmp::Reverse(*modified));
 
-    // 只处理最新的几个文件
-    let files_to_process = files_with_time.into_iter().take(20); // 最多20个最新文件
+    // Only process the newest files
+    let files_to_process = files_with_time.into_iter().take(20); // Up to 20 newest files
 
     for (path, project_name, _) in files_to_process {
         let entries = parse_jsonl_file_fast(&path, &project_name, &mut processed_hashes);
         all_entries.extend(entries);
         
-        // 如果达到限制，停止处理
+        // Stop processing if limit is reached
         if all_entries.len() >= limit {
             break;
         }
     }
 
-    // 按时间倒序排序并截取
+    // Sort by time in descending order and truncate
     all_entries.sort_unstable_by(|a, b| b.timestamp.cmp(&a.timestamp));
     all_entries.truncate(limit);
 

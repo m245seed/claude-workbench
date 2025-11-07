@@ -39,7 +39,6 @@ type View =
   | "claude-extensions";
 
 /**
- * 主应用组件 - 管理 Claude 目录浏览器界面
  * Main App component - Manages the Claude directory browser UI
  */
 function App() {
@@ -53,7 +52,7 @@ function App() {
 }
 
 /**
- * 应用内容组件 - 在 TabProvider 内部访问标签页状态
+ * Application content component - Accesses tab state within TabProvider
  */
 function AppContent() {
   const { t } = useTranslation();
@@ -80,18 +79,17 @@ function AppContent() {
   // 🔧 NEW: Navigation history stack for smart back functionality
   const [navigationHistory, setNavigationHistory] = useState<View[]>(["projects"]);
 
-  // 在项目视图中挂载时加载项目（仅在初次进入时加载）
-  // Load projects on mount when in projects view (only load once on initial mount)
+  // Load projects when mounting in the projects view (only on first entry)
   const hasLoadedProjectsRef = useRef(false);
 
-  // ⚡ 监听打开提示词API设置的事件，切换到设置页面
+  // ⚡ Listen for open-prompt-api-settings event and switch to settings page
   useEffect(() => {
     const handleOpenPromptAPISettings = () => {
-      // ⚡ 修复：只在非设置页面时才切换，避免无限循环
+      // ⚡ Fix: only switch when not already on settings page to avoid infinite loop
       if (view !== "settings") {
         console.log('[App] Switching to settings view for prompt API settings');
         handleViewChange("settings");
-        // 延迟触发内部事件，让Settings组件切换标签
+        // Delay triggering internal event to let Settings component switch tabs
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('switch-to-prompt-api-tab'));
         }, 100);
@@ -100,7 +98,7 @@ function AppContent() {
 
     window.addEventListener('open-prompt-api-settings', handleOpenPromptAPISettings as EventListener);
     return () => window.removeEventListener('open-prompt-api-settings', handleOpenPromptAPISettings as EventListener);
-  }, [view]);  // ⚡ 添加 view 依赖
+  }, [view]);  // ⚡ Add view dependency
 
   useEffect(() => {
     console.log('[App] useEffect triggered, view:', view, 'hasLoaded:', hasLoadedProjectsRef.current);
@@ -111,25 +109,24 @@ function AppContent() {
     }
   }, [view]);
 
-  // 监听 Claude 会话选择事件
   // Listen for Claude session selection events
   useEffect(() => {
     const handleSessionSelected = (event: CustomEvent) => {
       const { session } = event.detail;
-      // 在后台打开会话并自动切换到该标签页
+      // Open session in background and automatically switch to its tab
       const result = openSessionInBackground(session);
       switchToTab(result.tabId);
-      // 切换到标签管理器视图
+      // Switch to tab manager view
       handleViewChange("claude-tab-manager");
-      // 根据是否创建新标签页显示不同的通知
+      // Show different notifications depending on whether a new tab was created
       if (result.isNew) {
         setToast({
-          message: `会话 ${session.id.slice(-8)} 已打开`,
+          message: `Session ${session.id.slice(-8)} opened`,
           type: "success"
         });
       } else {
         setToast({
-          message: `已切换到会话 ${session.id.slice(-8)}`,
+          message: `Switched to session ${session.id.slice(-8)}`,
           type: "info"
         });
       }
@@ -148,7 +145,6 @@ function AppContent() {
   }, []);
 
   /**
-   * 从 ~/.claude/projects 目录加载所有项目
    * Loads all projects from the ~/.claude/projects directory
    */
   const loadProjects = async () => {
@@ -166,7 +162,6 @@ function AppContent() {
   };
 
   /**
-   * 处理项目选择并加载其会话
    * Handles project selection and loads its sessions
    */
   const handleProjectClick = async (project: Project) => {
@@ -185,12 +180,11 @@ function AppContent() {
   };
 
   /**
-   * 在主页打开新项目会话（需要选择项目路径）
    * Opens a new project session from home page (requires project path selection)
    */
   const handleNewProject = async () => {
     setSelectedSession(null);
-    setNewSessionProjectPath("__NEW_PROJECT__"); // 使用特殊标记表示"新建项目"
+    setNewSessionProjectPath("__NEW_PROJECT__"); // Use special marker to indicate "new project"
     handleViewChange("claude-tab-manager");
   };
 
@@ -293,19 +287,24 @@ function AppContent() {
   };
 
   /**
-   * 处理项目删除
    * Handles project deletion
    */
   const handleProjectDelete = async (project: Project) => {
     try {
       setLoading(true);
       await api.deleteProject(project.id);
-      setToast({ message: `项目 "${project.path.split('/').pop()}" 已删除成功`, type: "success" });
-      // 重新加载项目列表
+      setToast({
+        message: `Project "${project.path.split('/').pop()}" deleted successfully`,
+        type: "success"
+      });
+      // Reload project list
       await loadProjects();
     } catch (err) {
       console.error("Failed to delete project:", err);
-      setToast({ message: `删除项目失败: ${err}`, type: "error" });
+      setToast({
+        message: `Failed to delete project: ${err}`,
+        type: "error"
+      });
       setLoading(false);
     }
   };
@@ -319,7 +318,7 @@ function AppContent() {
             projectPath={projectForSettings?.path}
           />
         );
-      
+
       case "claude-extensions":
         return (
           <div className="flex-1 overflow-y-auto">
@@ -338,19 +337,19 @@ function AppContent() {
             <MarkdownEditor onBack={handleSmartBack} />
           </div>
         );
-      
+
       case "settings":
         return (
           <div className="flex-1 flex flex-col" style={{ minHeight: 0 }}>
             <Settings onBack={handleSmartBack} />
           </div>
         );
-      
+
       case "projects":
         return (
           <div className="flex-1 overflow-y-auto">
             <div className="container mx-auto p-6">
-              {/* Header - 移除动画避免重复触发 */}
+              {/* Header - remove animation to avoid duplicate triggers */}
               <div className="mb-6">
                 <div className="mb-4">
                   <h1 className="text-3xl font-bold tracking-tight">{t('common.ccProjectsTitle')}</h1>
@@ -374,7 +373,7 @@ function AppContent() {
                 </div>
               )}
 
-              {/* Content - 移除动画避免重复触发 */}
+              {/* Content - remove animation to avoid duplicate triggers */}
               {!loading && (
                 <>
                   {selectedProject ? (
@@ -385,25 +384,24 @@ function AppContent() {
                         onBack={handleBack}
                         onEditClaudeFile={handleEditClaudeFile}
                         onSessionClick={(session) => {
-                          // 打开会话并自动切换到该标签页
                           const result = openSessionInBackground(session);
                           switchToTab(result.tabId);
                           handleViewChange("claude-tab-manager");
                           if (result.isNew) {
                             setToast({
-                              message: `会话 ${session.id.slice(-8)} 已打开`,
+                              message: `Session ${session.id.slice(-8)} opened`,
                               type: "success"
                             });
                           } else {
                             setToast({
-                              message: `已切换到会话 ${session.id.slice(-8)}`,
+                              message: `Switched to session ${session.id.slice(-8)}`,
                               type: "info"
                             });
                           }
                         }}
                         onNewSession={(projectPath) => {
-                          setSelectedSession(null); // Clear any existing session
-                          setNewSessionProjectPath(projectPath); // Store the project path for new session
+                          setSelectedSession(null);
+                          setNewSessionProjectPath(projectPath);
                           handleViewChange("claude-tab-manager");
                         }}
                       />
@@ -425,18 +423,17 @@ function AppContent() {
                       {/* Running Claude Sessions */}
                       <RunningClaudeSessions
                         onSessionClick={(session) => {
-                          // 打开会话并自动切换到该标签页
                           const result = openSessionInBackground(session);
                           switchToTab(result.tabId);
                           handleViewChange("claude-tab-manager");
                           if (result.isNew) {
                             setToast({
-                              message: `会话 ${session.id.slice(-8)} 已打开`,
+                              message: `Session ${session.id.slice(-8)} opened`,
                               type: "success"
                             });
                           } else {
                             setToast({
-                              message: `已切换到会话 ${session.id.slice(-8)}`,
+                              message: `Switched to session ${session.id.slice(-8)}`,
                               type: "info"
                             });
                           }
@@ -467,7 +464,7 @@ function AppContent() {
             </div>
           </div>
         );
-      
+
       case "claude-file-editor":
         return editingClaudeFile ? (
           <ClaudeFileEditor
@@ -475,7 +472,7 @@ function AppContent() {
             onBack={handleBackFromClaudeFileEditor}
           />
         ) : null;
-      
+
       case "claude-code-session":
         return (
           <ClaudeCodeSession
@@ -495,13 +492,11 @@ function AppContent() {
             initialProjectPath={newSessionProjectPath}
             onBack={() => {
               setSelectedSession(null);
-              setNewSessionProjectPath(""); // Clear the project path
+              setNewSessionProjectPath("");
               handleViewChange("projects");
             }}
           />
         );
-      
-
 
       case "usage-dashboard":
         return (
@@ -512,7 +507,7 @@ function AppContent() {
         return (
           <MCPManager onBack={handleSmartBack} />
         );
-      
+
       case "project-settings":
         if (projectForSettings) {
           return (
@@ -526,8 +521,7 @@ function AppContent() {
           );
         }
         break;
-      
-      
+
       default:
         return null;
     }
@@ -536,78 +530,75 @@ function AppContent() {
   return (
     <OutputCacheProvider>
       <div className="h-screen bg-background flex flex-col">
-          {/* Topbar - 条件渲染：在标签页管理器中隐藏，提供沉浸式体验 */}
-          {view !== "claude-tab-manager" && (
-            <Topbar
-              onClaudeClick={() => handleViewChange("editor")}
-              onSettingsClick={() => handleViewChange("settings")}
-              onUsageClick={() => handleViewChange("usage-dashboard")}
-              onMCPClick={() => handleViewChange("mcp")}
-              onExtensionsClick={() => handleViewChange("claude-extensions")}
-              onTabsClick={() => handleViewChange("claude-tab-manager")}
-              onUpdateClick={() => setShowUpdateDialog(true)}
-              tabsCount={getTabStats().total}
+        {/* Topbar - hide in tab manager for immersive experience */}
+        {view !== "claude-tab-manager" && (
+          <Topbar
+            onClaudeClick={() => handleViewChange("editor")}
+            onSettingsClick={() => handleViewChange("settings")}
+            onUsageClick={() => handleViewChange("usage-dashboard")}
+            onMCPClick={() => handleViewChange("mcp")}
+            onExtensionsClick={() => handleViewChange("claude-extensions")}
+            onTabsClick={() => handleViewChange("claude-tab-manager")}
+            onUpdateClick={() => setShowUpdateDialog(true)}
+            tabsCount={getTabStats().total}
+          />
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          {renderContent()}
+        </div>
+
+        {/* Claude Binary Dialog */}
+        <ClaudeBinaryDialog
+          open={showClaudeBinaryDialog}
+          onOpenChange={setShowClaudeBinaryDialog}
+          onSuccess={() => {
+            setToast({ message: t('messages.saved'), type: "success" });
+            // Trigger a refresh of the Claude version check
+            window.location.reload();
+          }}
+          onError={(message) => setToast({ message, type: "error" })}
+        />
+
+        {/* Navigation Confirmation Dialog */}
+        <Dialog open={showNavigationConfirm} onOpenChange={setShowNavigationConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Navigation</DialogTitle>
+              <DialogDescription>
+                Claude is processing your request. Are you sure you want to leave the current session? This will interrupt the ongoing conversation.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleNavigationCancel}>
+                Cancel
+              </Button>
+              <Button onClick={handleNavigationConfirm}>
+                Confirm Leave
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Toast Container */}
+        <ToastContainer>
+          {toast && (
+            <Toast
+              message={toast.message}
+              type={toast.type}
+              onDismiss={() => setToast(null)}
             />
           )}
+        </ToastContainer>
 
-          {/* Main Content */}
-          <div className="flex-1 overflow-y-auto">
-            {renderContent()}
-          </div>
-
-          {/* NFO Credits Modal */}
-
-          {/* Claude Binary Dialog */}
-          <ClaudeBinaryDialog
-            open={showClaudeBinaryDialog}
-            onOpenChange={setShowClaudeBinaryDialog}
-            onSuccess={() => {
-              setToast({ message: t('messages.saved'), type: "success" });
-              // Trigger a refresh of the Claude version check
-              window.location.reload();
-            }}
-            onError={(message) => setToast({ message, type: "error" })}
-          />
-
-          {/* Navigation Confirmation Dialog */}
-          <Dialog open={showNavigationConfirm} onOpenChange={setShowNavigationConfirm}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>确认离开</DialogTitle>
-                <DialogDescription>
-                  Claude 正在处理您的请求。确定要离开当前会话吗？这将中断正在进行的对话。
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={handleNavigationCancel}>
-                  取消
-                </Button>
-                <Button onClick={handleNavigationConfirm}>
-                  确定离开
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* Toast Container */}
-          <ToastContainer>
-            {toast && (
-              <Toast
-                message={toast.message}
-                type={toast.type}
-                onDismiss={() => setToast(null)}
-              />
-            )}
-          </ToastContainer>
-
-          {/* Update Dialog */}
-          <UpdateDialog 
-            open={showUpdateDialog} 
-            onClose={() => setShowUpdateDialog(false)}
-          />
-        </div>
-      </OutputCacheProvider>
+        {/* Update Dialog */}
+        <UpdateDialog
+          open={showUpdateDialog}
+          onClose={() => setShowUpdateDialog(false)}
+        />
+      </div>
+    </OutputCacheProvider>
   );
 }
-
 export default App;

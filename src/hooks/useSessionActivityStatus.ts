@@ -38,7 +38,7 @@ interface SessionActivityStatus {
 }
 
 /**
- * Hook for managing session activity status and determining when to track costs
+ * Session activity status hook
  *
  * Based on Claude Code's 5-hour session window policy and activity detection
  */
